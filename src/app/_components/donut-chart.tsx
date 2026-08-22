@@ -128,11 +128,8 @@ export function DonutChart({
       </div>
       <ul className="flex w-full max-w-xs flex-col gap-2">
         {slices.map((slice) => (
-          <li
-            key={slice.key}
-            className="flex items-center justify-between gap-3 text-sm"
-          >
-            <span className="flex min-w-0 items-center gap-2">
+          <li key={slice.key} className="flex items-center gap-2 text-sm">
+            <span className="flex min-w-0 flex-1 items-center gap-2">
               <span
                 aria-hidden
                 className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
@@ -147,13 +144,16 @@ export function DonutChart({
               </span>
             </span>
             <span
-              className="shrink-0 tabular-nums"
+              className="shrink-0 min-w-[5.5rem] text-right tabular-nums"
               style={{ color: "var(--dv-text-secondary)" }}
             >
-              {formatKRW(slice.amount)}{" "}
-              <span style={{ color: "var(--dv-text-muted)" }}>
-                · {slice.percentage}%
-              </span>
+              {formatKRW(slice.amount)}
+            </span>
+            <span
+              className="shrink-0 min-w-[3.25rem] text-right tabular-nums"
+              style={{ color: "var(--dv-text-muted)" }}
+            >
+              {slice.percentage.toFixed(1)}%
             </span>
           </li>
         ))}
