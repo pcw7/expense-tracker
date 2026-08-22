@@ -360,7 +360,7 @@ export default function ExpensesPage() {
         <>
           <section
             aria-labelledby="new-expense-heading"
-            className="flex flex-col gap-4 rounded-lg border border-black/[.08] p-5 dark:border-white/[.145]"
+            className="flex flex-col gap-4 rounded-lg border border-sky-900/12 p-5 dark:border-indigo-200/15"
           >
             <h2
               id="new-expense-heading"
@@ -396,7 +396,7 @@ export default function ExpensesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, amount: e.target.value }))
                     }
-                    className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                    className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                   />
                 </div>
 
@@ -412,7 +412,7 @@ export default function ExpensesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, date: e.target.value }))
                     }
-                    className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                    className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                   />
                 </div>
 
@@ -435,7 +435,7 @@ export default function ExpensesPage() {
                           categoryId: e.target.value,
                         }))
                       }
-                      className="min-w-48 rounded-md border border-black/[.08] bg-transparent px-3 py-2 disabled:opacity-50 dark:border-white/[.145]"
+                      className="min-w-48 rounded-md border border-sky-900/12 bg-transparent px-3 py-2 disabled:opacity-50 dark:border-indigo-200/15"
                     >
                       {!hasCategories && <option value="">카테고리 없음</option>}
                       {categories.map((c) => (
@@ -450,7 +450,7 @@ export default function ExpensesPage() {
                       onClick={() => setNewCategoryOpen((v) => !v)}
                       aria-expanded={newCategoryOpen}
                       aria-controls="new-category-form"
-                      className="rounded-md border border-black/[.08] px-3 py-2 text-sm hover:bg-black/[.03] dark:border-white/[.145] dark:hover:bg-white/[.04]"
+                      className="rounded-md border border-sky-900/12 px-3 py-2 text-sm hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
                     >
                       {newCategoryOpen ? "카테고리 추가 취소" : "+ 새 카테고리"}
                     </button>
@@ -468,7 +468,7 @@ export default function ExpensesPage() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, memo: e.target.value }))
                     }
-                    className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                    className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                   />
                 </div>
               </div>
@@ -492,7 +492,7 @@ export default function ExpensesPage() {
               <form
                 id="new-category-form"
                 onSubmit={handleCreateCategory}
-                className="flex flex-col gap-3 rounded-md border border-black/[.08] p-4 dark:border-white/[.145]"
+                className="flex flex-col gap-3 rounded-md border border-sky-900/12 p-4 dark:border-indigo-200/15"
               >
                 <h3 className="text-sm font-medium">새 카테고리 추가</h3>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -506,7 +506,7 @@ export default function ExpensesPage() {
                       required
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
-                      className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                      className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -518,7 +518,7 @@ export default function ExpensesPage() {
                       type="text"
                       value={newCategoryColor}
                       onChange={(e) => setNewCategoryColor(e.target.value)}
-                      className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                      className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                     />
                   </div>
                 </div>
@@ -535,7 +535,7 @@ export default function ExpensesPage() {
                 <button
                   type="submit"
                   disabled={categorySubmitting}
-                  className="self-start rounded-md border border-black/[.08] px-4 py-2 text-sm font-medium hover:bg-black/[.03] disabled:opacity-50 dark:border-white/[.145] dark:hover:bg-white/[.04]"
+                  className="self-start rounded-md border border-sky-900/12 px-4 py-2 text-sm font-medium hover:bg-sky-500/5 disabled:opacity-50 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
                 >
                   {categorySubmitting ? "추가하는 중..." : "카테고리 추가"}
                 </button>
@@ -569,7 +569,7 @@ export default function ExpensesPage() {
                   return (
                     <li
                       key={expense.id}
-                      className="rounded-lg border border-black/[.08] p-4 dark:border-white/[.145]"
+                      className="rounded-lg border border-sky-900/12 p-4 dark:border-indigo-200/15"
                     >
                       {isEditing ? (
                         <form
@@ -598,7 +598,7 @@ export default function ExpensesPage() {
                                     amount: e.target.value,
                                   }))
                                 }
-                                className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                                className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                               />
                             </div>
                             <div className="flex flex-col gap-1">
@@ -619,7 +619,7 @@ export default function ExpensesPage() {
                                     date: e.target.value,
                                   }))
                                 }
-                                className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                                className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                               />
                             </div>
                             <div className="flex flex-col gap-1">
@@ -639,7 +639,7 @@ export default function ExpensesPage() {
                                     categoryId: e.target.value,
                                   }))
                                 }
-                                className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                                className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                               >
                                 {categories.map((c) => (
                                   <option key={c.id} value={c.id}>
@@ -666,7 +666,7 @@ export default function ExpensesPage() {
                                     memo: e.target.value,
                                   }))
                                 }
-                                className="rounded-md border border-black/[.08] bg-transparent px-3 py-2 dark:border-white/[.145]"
+                                className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
                               />
                             </div>
                           </div>
@@ -691,7 +691,7 @@ export default function ExpensesPage() {
                             <button
                               type="button"
                               onClick={cancelEdit}
-                              className="rounded-md border border-black/[.08] px-3 py-1.5 text-sm hover:bg-black/[.03] dark:border-white/[.145] dark:hover:bg-white/[.04]"
+                              className="rounded-md border border-sky-900/12 px-3 py-1.5 text-sm hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
                             >
                               취소
                             </button>
@@ -733,7 +733,7 @@ export default function ExpensesPage() {
                             <button
                               type="button"
                               onClick={() => startEdit(expense)}
-                              className="rounded-md border border-black/[.08] px-3 py-1.5 text-sm hover:bg-black/[.03] dark:border-white/[.145] dark:hover:bg-white/[.04]"
+                              className="rounded-md border border-sky-900/12 px-3 py-1.5 text-sm hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
                             >
                               수정
                             </button>

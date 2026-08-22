@@ -163,7 +163,7 @@ export function BudgetManager({
           type="month"
           value={month}
           onChange={(event) => handleMonthChange(event.target.value)}
-          className="rounded-md border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
+          className="rounded-md border border-sky-900/12 bg-transparent px-3 py-1.5 text-sm dark:border-indigo-200/15"
         />
       </div>
 
@@ -195,7 +195,7 @@ export function BudgetManager({
               placeholder="이번 달 전체 예산 (원)"
               value={totalAmountInput}
               onChange={(event) => setTotalAmountInput(event.target.value)}
-              className="w-full rounded-md border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
+              className="w-full rounded-md border border-sky-900/12 bg-transparent px-3 py-1.5 text-sm dark:border-indigo-200/15"
             />
             <button
               type="submit"
@@ -240,7 +240,7 @@ export function BudgetManager({
             <select
               value={selectedCategoryId}
               onChange={(event) => setCategoryId(event.target.value)}
-              className="rounded-md border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
+              className="rounded-md border border-sky-900/12 bg-transparent px-3 py-1.5 text-sm dark:border-indigo-200/15"
             >
               {availableCategories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -255,7 +255,7 @@ export function BudgetManager({
               placeholder="카테고리 예산 (원)"
               value={categoryAmountInput}
               onChange={(event) => setCategoryAmountInput(event.target.value)}
-              className="w-full rounded-md border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
+              className="w-full rounded-md border border-sky-900/12 bg-transparent px-3 py-1.5 text-sm dark:border-indigo-200/15"
             />
             <button
               type="submit"
@@ -309,7 +309,7 @@ function BudgetRow({
     return (
       <form
         onSubmit={(event) => onEditSubmit(event, budget.id)}
-        className="flex items-center gap-2 rounded-md border border-black/[.08] px-3 py-2 dark:border-white/[.145]"
+        className="flex items-center gap-2 rounded-md border border-sky-900/12 px-3 py-2 dark:border-indigo-200/15"
       >
         <span className="w-24 shrink-0 text-sm">{label}</span>
         <input
@@ -318,7 +318,7 @@ function BudgetRow({
           autoFocus
           value={editAmountInput}
           onChange={(event) => setEditAmountInput(event.target.value)}
-          className="w-full rounded-md border border-black/[.08] bg-transparent px-2 py-1 text-sm dark:border-white/[.145]"
+          className="w-full rounded-md border border-sky-900/12 bg-transparent px-2 py-1 text-sm dark:border-indigo-200/15"
         />
         <button
           type="submit"
@@ -339,7 +339,7 @@ function BudgetRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded-md border border-black/[.08] px-3 py-2 dark:border-white/[.145]">
+    <div className="flex items-center justify-between gap-2 rounded-md border border-sky-900/12 px-3 py-2 dark:border-indigo-200/15">
       <span className="text-sm">{label}</span>
       <div className="flex items-center gap-3">
         <span className="text-sm font-medium">{formatKRW(budget.amount)}</span>

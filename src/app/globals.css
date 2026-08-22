@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f3f9ff;
+  --foreground: #1c3a5e;
 }
 
 @theme inline {
@@ -14,13 +14,74 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #101636;
+    --foreground: #eef1ff;
   }
 }
 
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * 하늘/구름/해(라이트) · 밤하늘/별/달(다크) 배경.
+ * body 뒤에 고정된 레이어로, 별도 DOM 없이 컨텐츠 스크롤과 무관하게 항상
+ * 화면 전체를 채운다.
+ */
+.sky-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #a9d8ff 0%, #cdeaff 40%, #f6fbff 100%);
+}
+
+.sky-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* 해(오른쪽 위 광원) + 뭉게구름 몇 덩이 */
+  background:
+    radial-gradient(34vmax 34vmax at 88% 4%, rgba(255, 221, 130, 0.95), rgba(255, 221, 130, 0) 68%),
+    radial-gradient(38vmax 38vmax at 88% 4%, rgba(255, 246, 214, 0.55), rgba(255, 246, 214, 0) 70%),
+    radial-gradient(22vmax 8vmax at 12% 16%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 72%),
+    radial-gradient(15vmax 6vmax at 20% 20%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 72%),
+    radial-gradient(26vmax 9vmax at 68% 30%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 72%),
+    radial-gradient(17vmax 6vmax at 62% 26%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 72%),
+    radial-gradient(19vmax 7vmax at 38% 58%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 72%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .sky-backdrop::before {
+    background: linear-gradient(180deg, #050815 0%, #0c1230 55%, #171f4a 100%);
+  }
+
+  .sky-backdrop::after {
+    /* 달 광원 + 별 */
+    background:
+      radial-gradient(24vmax 24vmax at 85% 8%, rgba(255, 249, 214, 0.5), rgba(255, 249, 214, 0) 70%),
+      radial-gradient(30vmax 30vmax at 85% 8%, rgba(180, 200, 255, 0.18), rgba(180, 200, 255, 0) 70%),
+      radial-gradient(2px 2px at 8% 12%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 18% 28%, #fff, transparent),
+      radial-gradient(2px 2px at 32% 8%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 46% 22%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 58% 6%, #fff, transparent),
+      radial-gradient(2px 2px at 68% 45%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 78% 65%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 25% 52%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 12% 70%, #fff, transparent),
+      radial-gradient(2px 2px at 40% 78%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 90% 30%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 55% 85%, #fff, transparent);
+    opacity: 0.9;
+  }
 }

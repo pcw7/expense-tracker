@@ -25,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <div className="sky-backdrop" aria-hidden="true" />
         <Nav />
         <div className="flex flex-1 flex-col">{children}</div>
       </body>

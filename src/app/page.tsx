@@ -38,7 +38,7 @@ export default function Home() {
           <Link
             key={section.href}
             href={section.href}
-            className="flex flex-col gap-1 rounded-lg border border-black/[.08] p-5 transition-colors hover:bg-black/[.03] dark:border-white/[.145] dark:hover:bg-white/[.04]"
+            className="flex flex-col gap-1 rounded-lg border border-sky-900/12 p-5 transition-colors hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
           >
             <span className="font-medium">{section.title}</span>
             <span className="text-sm text-zinc-600 dark:text-zinc-400">

@@ -96,7 +96,7 @@ export default function ReportsPage() {
         <label className="flex items-center gap-2 text-sm">
           <span className="text-zinc-600 dark:text-zinc-400">월 선택</span>
           <select
-            className="rounded-md border border-black/[.1] bg-transparent px-2 py-1 text-sm dark:border-white/[.145]"
+            className="rounded-md border border-sky-900/12 bg-transparent px-2 py-1 text-sm dark:border-indigo-200/15"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             disabled={isGenerating}
@@ -118,7 +118,7 @@ export default function ReportsPage() {
         </button>
       </div>
 
-      <div className="rounded-lg border border-black/[.08] p-6 dark:border-white/[.145]">
+      <div className="rounded-lg border border-sky-900/12 p-6 dark:border-indigo-200/15">
         {state.status === "loading" ? (
           <p className="text-sm text-zinc-500">불러오는 중...</p>
         ) : state.status === "generating" ? (
