@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatKRW } from "@/lib/format";
+import { localDateString } from "@/lib/date";
 import { readErrorMessage } from "@/lib/client-fetch";
 
 type Category = {
@@ -27,15 +28,8 @@ type ExpenseFormValues = {
   memo: string;
 };
 
-function todayInputValue() {
-  const now = new Date();
-  const offset = now.getTimezoneOffset();
-  const local = new Date(now.getTime() - offset * 60 * 1000);
-  return local.toISOString().slice(0, 10);
-}
-
 function emptyExpenseForm(categoryId = ""): ExpenseFormValues {
-  return { amount: "", date: todayInputValue(), categoryId, memo: "" };
+  return { amount: "", date: localDateString(), categoryId, memo: "" };
 }
 
 function formatDate(isoDate: string) {

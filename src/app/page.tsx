@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMonthlyStats, currentMonthString } from "@/lib/stats";
+import { MONTH_REGEX } from "@/lib/date";
 import { formatMonthShort } from "@/lib/format";
 import { DonutChart } from "./_components/donut-chart";
 import { AiTeaser } from "./_components/ai-teaser";
+import { ExpenseCalendar } from "./_components/expense-calendar";
 
 // 이 페이지는 요청마다 최신 지출/리포트 데이터를 읽어야 하므로, 빌드 시점
 // 데이터로 고정되는 정적 프리렌더를 명시적으로 끈다.
@@ -32,8 +34,16 @@ const sections = [
   },
 ];
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ calMonth?: string; date?: string }>;
+}) {
   const month = currentMonthString();
+  const { calMonth: calMonthParam, date: dateParam } = await searchParams;
+  const calMonth =
+    calMonthParam && MONTH_REGEX.test(calMonthParam) ? calMonthParam : month;
+
   const [stats, report] = await Promise.all([
     getMonthlyStats(month),
     prisma.monthlyReport.findUnique({ where: { month } }),
@@ -48,6 +58,8 @@ export default async function Home() {
         <DonutChart items={stats.categoryBreakdown} total={stats.totalAmount} />
         <AiTeaser reportContent={report?.content ?? null} />
       </section>
+
+      <ExpenseCalendar calMonth={calMonth} dateParam={dateParam ?? null} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {sections.map((section) => (
