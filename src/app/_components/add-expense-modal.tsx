@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { shiftMonth, buildMonthWeeks } from "@/lib/date";
 import { readErrorMessage } from "@/lib/client-fetch";
+import { CATEGORY_COLOR_SWATCHES } from "@/lib/categoryColor";
 
 type Category = { id: string; name: string; icon: string | null };
 
@@ -303,7 +304,8 @@ export function AddExpenseButton({
                   <button
                     type="button"
                     onClick={openCategoryModal}
-                    className="text-xs font-medium text-sky-600 hover:underline dark:text-indigo-200"
+                    className="rounded-md border border-sky-900/12 px-2.5 py-1 text-xs font-medium hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
+                    style={{ color: "var(--dv-text-primary)" }}
                   >
                     + 카테고리 추가
                   </button>
@@ -417,16 +419,33 @@ export function AddExpenseButton({
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label htmlFor="modal-new-category-color" className="text-sm">
-                      색상 (선택, 예: #F97316)
-                    </label>
-                    <input
-                      id="modal-new-category-color"
-                      type="text"
-                      value={newCategoryColor}
-                      onChange={(event) => setNewCategoryColor(event.target.value)}
-                      className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
-                    />
+                    <span className="text-sm">색상 (선택)</span>
+                    <div className="flex flex-wrap gap-2">
+                      {CATEGORY_COLOR_SWATCHES.map((swatch) => {
+                        const isSelected = newCategoryColor === swatch;
+                        return (
+                          <button
+                            key={swatch}
+                            type="button"
+                            onClick={() =>
+                              setNewCategoryColor((prev) =>
+                                prev === swatch ? "" : swatch,
+                              )
+                            }
+                            aria-label={`색상 ${swatch}`}
+                            aria-pressed={isSelected}
+                            className="h-7 w-7 rounded-full transition-[outline-offset]"
+                            style={{
+                              backgroundColor: swatch,
+                              outline: isSelected
+                                ? "2px solid var(--dv-text-primary)"
+                                : "2px solid transparent",
+                              outlineOffset: 2,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {categoryError && (
