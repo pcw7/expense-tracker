@@ -276,9 +276,15 @@ export function AddExpenseButton({
                 </tbody>
               </table>
 
-              <p className="text-xs" style={{ color: "var(--dv-text-muted)" }}>
-                선택한 날짜: {date}
-              </p>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm">날짜</span>
+                <div
+                  className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
+                  style={{ color: "var(--dv-text-primary)" }}
+                >
+                  {date}
+                </div>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -304,8 +310,7 @@ export function AddExpenseButton({
                   <button
                     type="button"
                     onClick={openCategoryModal}
-                    className="rounded-md border border-sky-900/12 px-2.5 py-1 text-xs font-medium hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
-                    style={{ color: "var(--dv-text-primary)" }}
+                    className="rounded-md bg-foreground px-2.5 py-1 text-xs font-medium text-background transition-opacity hover:opacity-90"
                   >
                     + 카테고리 추가
                   </button>
