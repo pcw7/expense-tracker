@@ -1,0 +1,68 @@
+// Prisma schema for the expense tracker app.
+// Datasource URL is configured in prisma.config.ts (Prisma 7 convention),
+// which reads DATABASE_URL from .env.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// 지출 카테고리 (예: 식비, 교통비, 문화생활 등)
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String? // UI 표시용 색상 (hex 코드, 예: "#F97316")
+  icon      String? // UI 표시용 아이콘 (이모지 또는 아이콘 이름)
+  createdAt DateTime @default(now())
+
+  expenses Expense[]
+  budgets  Budget[]
+
+  @@map("categories")
+}
+
+/// 개별 지출 내역
+model Expense {
+  id         String   @id @default(cuid())
+  amount     Int // 지출 금액 (원 단위 정수, KRW)
+  date       DateTime // 지출이 발생한 날짜 (등록일과 별개)
+  memo       String? // 메모/설명
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([date])
+  @@index([categoryId])
+  @@map("expenses")
+}
+
+/// 월별 예산. categoryId가 null이면 해당 월의 전체(총) 예산을 의미한다.
+model Budget {
+  id         String    @id @default(cuid())
+  month      String // "YYYY-MM" 형식
+  amount     Int // 예산 금액 (원 단위 정수, KRW)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([month, categoryId])
+  @@index([month])
+  @@map("budgets")
+}
+
+/// AI(OpenRouter 경유 DeepSeek)가 생성한 월간 소비 리포트. 월당 1개.
+model MonthlyReport {
+  id        String   @id @default(cuid())
+  month     String   @unique // "YYYY-MM" 형식
+  content   String // AI가 생성한 리포트 본문 텍스트(마크다운)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("monthly_reports")
+}
