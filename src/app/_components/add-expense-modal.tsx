@@ -310,7 +310,7 @@ export function AddExpenseButton({
                   <button
                     type="button"
                     onClick={openCategoryModal}
-                    className="rounded-md bg-foreground px-2.5 py-1 text-xs font-medium text-background transition-opacity hover:opacity-90"
+                    className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
                   >
                     + 카테고리 추가
                   </button>
