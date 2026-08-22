@@ -1,27 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import { MONTH_REGEX, currentMonthString, shiftMonth, monthRange } from "@/lib/date";
 
-export const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
-
-/** 현재 시각 기준 "YYYY-MM" 문자열을 반환한다. */
-export function currentMonthString(): string {
-  const now = new Date();
-  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-/** month("YYYY-MM")에서 delta개월만큼 이동한 "YYYY-MM" 문자열을 반환한다. */
-export function shiftMonth(month: string, delta: number): string {
-  const [year, mon] = month.split("-").map(Number);
-  const d = new Date(Date.UTC(year, mon - 1 + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-function getMonthRange(month: string): { start: Date; end: Date } {
-  const [year, mon] = month.split("-").map(Number);
-  return {
-    start: new Date(Date.UTC(year, mon - 1, 1)),
-    end: new Date(Date.UTC(year, mon, 1)),
-  };
-}
+export { MONTH_REGEX, currentMonthString, shiftMonth };
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
@@ -42,6 +22,7 @@ export type BudgetCategoryItem = {
   amount: number;
   spent: number;
   remaining: number;
+  /** amount가 0인데 spent > 0이면 Number.POSITIVE_INFINITY (무한대 초과). */
   percentage: number;
 };
 
@@ -66,12 +47,18 @@ export type MonthlyStats = {
   hasAnyExpenseEver: boolean;
 };
 
+/** amount가 0이면 spent > 0일 때 무한대(항상 초과)로, spent도 0이면 0으로 취급한다. */
+function budgetPercentage(spent: number, amount: number): number {
+  if (amount > 0) return round1((spent / amount) * 100);
+  return spent > 0 ? Number.POSITIVE_INFINITY : 0;
+}
+
 /** 지정한 월의 카테고리별 지출·예산 사용률과 최근 trendMonths개월 지출 추이를 계산한다. */
 export async function getMonthlyStats(
   month: string,
   trendMonths = 6,
 ): Promise<MonthlyStats> {
-  const { start, end } = getMonthRange(month);
+  const { start, end } = monthRange(month);
 
   const [expenses, budgets, anyExpense] = await Promise.all([
     prisma.expense.findMany({
@@ -120,10 +107,7 @@ export async function getMonthlyStats(
           amount: overallBudget.amount,
           spent: totalAmount,
           remaining: overallBudget.amount - totalAmount,
-          percentage:
-            overallBudget.amount > 0
-              ? round1((totalAmount / overallBudget.amount) * 100)
-              : 0,
+          percentage: budgetPercentage(totalAmount, overallBudget.amount),
         }
       : null,
     categories: categoryBudgets
@@ -135,32 +119,33 @@ export async function getMonthlyStats(
           amount: b.amount,
           spent,
           remaining: b.amount - spent,
-          percentage: b.amount > 0 ? round1((spent / b.amount) * 100) : 0,
+          percentage: budgetPercentage(spent, b.amount),
         };
       })
       .sort((a, b) => b.percentage - a.percentage),
   };
 
+  // 6개월치 추이를 달마다 따로 집계 쿼리를 날리는 대신, 전체 구간을 한 번에
+  // 조회해 JS에서 월별로 합산한다 (쿼리 trendMonths번 -> 1번).
   const trendTargets = Array.from({ length: trendMonths }, (_, i) =>
     shiftMonth(month, -(trendMonths - 1 - i)),
   );
+  const trendStart = monthRange(trendTargets[0]).start;
+  const trendRows = await prisma.expense.findMany({
+    where: { date: { gte: trendStart, lt: end } },
+    select: { amount: true, date: true },
+  });
+  const trendTotals = new Map<string, number>();
+  for (const row of trendRows) {
+    const key = `${row.date.getUTCFullYear()}-${String(row.date.getUTCMonth() + 1).padStart(2, "0")}`;
+    trendTotals.set(key, (trendTotals.get(key) ?? 0) + row.amount);
+  }
+  const trend: TrendPoint[] = trendTargets.map((m) => ({
+    month: m,
+    total: trendTotals.get(m) ?? 0,
+  }));
 
-  const trend = await Promise.all(
-    trendTargets.map(async (m): Promise<TrendPoint> => {
-      if (m === month) {
-        return { month: m, total: totalAmount };
-      }
-      const { start: s, end: e } = getMonthRange(m);
-      const agg = await prisma.expense.aggregate({
-        where: { date: { gte: s, lt: e } },
-        _sum: { amount: true },
-      });
-      return { month: m, total: agg._sum.amount ?? 0 };
-    }),
-  );
-
-  const previousMonthAmount =
-    trend.length >= 2 ? trend[trend.length - 2].total : 0;
+  const previousMonthAmount = trendTotals.get(shiftMonth(month, -1)) ?? 0;
 
   return {
     month,

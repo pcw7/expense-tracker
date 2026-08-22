@@ -11,6 +11,7 @@ const SERIES_VARS = [
   "var(--dv-series-7)",
 ];
 const MAX_INDIVIDUAL_SERIES = SERIES_VARS.length;
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
 
 type Row = {
   key: string;
@@ -43,7 +44,7 @@ export function CategoryBreakdownChart({
     icon: item.icon,
     amount: item.amount,
     percentage: item.percentage,
-    color: SERIES_VARS[i],
+    color: item.color && HEX_COLOR.test(item.color) ? item.color : SERIES_VARS[i],
   }));
 
   if (otherAmount > 0) {

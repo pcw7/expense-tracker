@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { CategoryModel, BudgetModel } from "@/generated/prisma/models";
+import { formatKRW } from "@/lib/format";
+import { readErrorMessage } from "@/lib/client-fetch";
 
 type BudgetWithCategory = BudgetModel & { category: CategoryModel | null };
 
@@ -12,15 +14,11 @@ type BudgetManagerProps = {
   budgets: BudgetWithCategory[];
 };
 
-const currencyFormatter = new Intl.NumberFormat("ko-KR");
-
-async function parseErrorMessage(response: Response): Promise<string> {
-  try {
-    const data = (await response.json()) as { error?: string };
-    return data.error ?? "요청을 처리하지 못했습니다.";
-  } catch {
-    return "요청을 처리하지 못했습니다.";
-  }
+/** 빈 문자열은 무효로 취급한다 (빈 입력이 조용히 0원으로 저장되는 것을 방지). */
+function parseAmountInput(raw: string): number | null {
+  if (raw.trim() === "") return null;
+  const amount = Number(raw);
+  return Number.isFinite(amount) && amount >= 0 ? amount : null;
 }
 
 export function BudgetManager({
@@ -30,6 +28,7 @@ export function BudgetManager({
 }: BudgetManagerProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [totalAmountInput, setTotalAmountInput] = useState("");
@@ -46,6 +45,14 @@ export function BudgetManager({
   const availableCategories = categories.filter(
     (c) => !budgetedCategoryIds.has(c.id),
   );
+  // categoryId state는 카테고리 예산이 새로 생기면(즉 select 옵션 목록이
+  // 바뀌면) 더 이상 목록에 없는 값을 가리킬 수 있다. select에 표시/제출할
+  // 값은 항상 이 계산된 값을 쓰고, state를 직접 신뢰하지 않는다.
+  const selectedCategoryId = availableCategories.some((c) => c.id === categoryId)
+    ? categoryId
+    : (availableCategories[0]?.id ?? "");
+
+  const busy = isPending || submitting;
 
   function handleMonthChange(newMonth: string) {
     router.push(`/budgets?month=${newMonth}`);
@@ -55,91 +62,94 @@ export function BudgetManager({
     router.refresh();
   }
 
-  async function submitBudget(
-    payload: { month: string; amount: number; categoryId: string | null },
+  async function submitRequest(
+    url: string,
+    method: "POST" | "PATCH",
+    payload: unknown,
     onSuccess: () => void,
   ) {
     setError(null);
-    const response = await fetch("/api/budgets", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    setSubmitting(true);
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      setError(await parseErrorMessage(response));
-      return;
+      if (!response.ok) {
+        setError(await readErrorMessage(response));
+        return;
+      }
+
+      onSuccess();
+      startTransition(refresh);
+    } finally {
+      setSubmitting(false);
     }
-
-    onSuccess();
-    startTransition(refresh);
   }
 
   function handleTotalSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const amount = Number(totalAmountInput);
-    if (!Number.isFinite(amount) || amount < 0) {
+    const amount = parseAmountInput(totalAmountInput);
+    if (amount === null) {
       setError("올바른 금액을 입력해주세요.");
       return;
     }
-    void submitBudget({ month, amount, categoryId: null }, () =>
+    void submitRequest("/api/budgets", "POST", { month, amount, categoryId: null }, () =>
       setTotalAmountInput(""),
     );
   }
 
   function handleCategorySubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const amount = Number(categoryAmountInput);
-    if (!categoryId) {
+    if (!selectedCategoryId) {
       setError("카테고리를 선택해주세요.");
       return;
     }
-    if (!Number.isFinite(amount) || amount < 0) {
+    const amount = parseAmountInput(categoryAmountInput);
+    if (amount === null) {
       setError("올바른 금액을 입력해주세요.");
       return;
     }
-    void submitBudget({ month, amount, categoryId }, () =>
-      setCategoryAmountInput(""),
+    void submitRequest(
+      "/api/budgets",
+      "POST",
+      { month, amount, categoryId: selectedCategoryId },
+      () => setCategoryAmountInput(""),
     );
   }
 
-  async function handleEditSubmit(
+  function handleEditSubmit(
     event: React.FormEvent<HTMLFormElement>,
     id: string,
   ) {
     event.preventDefault();
-    const amount = Number(editAmountInput);
-    if (!Number.isFinite(amount) || amount < 0) {
+    const amount = parseAmountInput(editAmountInput);
+    if (amount === null) {
       setError("올바른 금액을 입력해주세요.");
       return;
     }
-
-    setError(null);
-    const response = await fetch(`/api/budgets/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount }),
-    });
-
-    if (!response.ok) {
-      setError(await parseErrorMessage(response));
-      return;
-    }
-
-    setEditingId(null);
-    startTransition(refresh);
+    void submitRequest(`/api/budgets/${id}`, "PATCH", { amount }, () =>
+      setEditingId(null),
+    );
   }
 
   async function handleDelete(id: string) {
     setError(null);
-    const response = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
+    setSubmitting(true);
+    try {
+      const response = await fetch(`/api/budgets/${id}`, { method: "DELETE" });
 
-    if (!response.ok && response.status !== 204) {
-      setError(await parseErrorMessage(response));
-      return;
+      if (!response.ok && response.status !== 204) {
+        setError(await readErrorMessage(response));
+        return;
+      }
+
+      startTransition(refresh);
+    } finally {
+      setSubmitting(false);
     }
-
-    startTransition(refresh);
   }
 
   return (
@@ -175,7 +185,7 @@ export function BudgetManager({
             setEditAmountInput={setEditAmountInput}
             onEditSubmit={handleEditSubmit}
             onDelete={handleDelete}
-            isPending={isPending}
+            isPending={busy}
           />
         ) : (
           <form onSubmit={handleTotalSubmit} className="flex items-center gap-2">
@@ -189,7 +199,7 @@ export function BudgetManager({
             />
             <button
               type="submit"
-              disabled={isPending}
+              disabled={busy}
               className="shrink-0 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background disabled:opacity-50"
             >
               설정
@@ -218,7 +228,7 @@ export function BudgetManager({
                   setEditAmountInput={setEditAmountInput}
                   onEditSubmit={handleEditSubmit}
                   onDelete={handleDelete}
-                  isPending={isPending}
+                  isPending={busy}
                 />
               </li>
             ))}
@@ -228,7 +238,7 @@ export function BudgetManager({
         {availableCategories.length > 0 ? (
           <form onSubmit={handleCategorySubmit} className="flex items-center gap-2">
             <select
-              value={categoryId}
+              value={selectedCategoryId}
               onChange={(event) => setCategoryId(event.target.value)}
               className="rounded-md border border-black/[.08] bg-transparent px-3 py-1.5 text-sm dark:border-white/[.145]"
             >
@@ -249,7 +259,7 @@ export function BudgetManager({
             />
             <button
               type="submit"
-              disabled={isPending}
+              disabled={busy}
               className="shrink-0 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background disabled:opacity-50"
             >
               추가
@@ -332,9 +342,7 @@ function BudgetRow({
     <div className="flex items-center justify-between gap-2 rounded-md border border-black/[.08] px-3 py-2 dark:border-white/[.145]">
       <span className="text-sm">{label}</span>
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium">
-          {currencyFormatter.format(budget.amount)}원
-        </span>
+        <span className="text-sm font-medium">{formatKRW(budget.amount)}</span>
         <button
           type="button"
           onClick={() => {

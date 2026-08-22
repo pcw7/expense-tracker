@@ -13,8 +13,10 @@ type MeterProps = {
  * 채워진 막대 색상이 심각도를 나타낸다: 80% 미만 정상(accent) → 80~100% 경고 → 초과 위험.
  */
 function Meter({ label, spent, amount, percentage }: MeterProps) {
-  const filledWidth = Math.min(Math.max(percentage, 0), 100);
-  const isOver = percentage > 100;
+  const isOver = !Number.isFinite(percentage) || percentage > 100;
+  const filledWidth = Number.isFinite(percentage)
+    ? Math.min(Math.max(percentage, 0), 100)
+    : 100;
   const color = isOver
     ? "var(--dv-status-critical)"
     : percentage >= 80
@@ -50,7 +52,7 @@ function Meter({ label, spent, amount, percentage }: MeterProps) {
         className="mt-1 text-xs tabular-nums"
         style={{ color: isOver ? "var(--dv-delta-bad)" : "var(--dv-text-muted)" }}
       >
-        {percentage}% 사용
+        {Number.isFinite(percentage) ? `${percentage}% 사용` : "예산 0원, 지출 발생"}
         {isOver ? ` · ${formatKRW(spent - amount)} 초과` : ""}
       </div>
     </div>

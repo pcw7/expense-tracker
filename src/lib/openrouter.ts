@@ -102,7 +102,7 @@ async function attemptOnce(
         // Optional but recommended by OpenRouter for attribution/rankings.
         // Must be ASCII: fetch() headers are ByteString, so non-Latin1
         // characters (e.g. Korean) throw a TypeError at request time.
-        "HTTP-Referer": "http://localhost:3000",
+        "HTTP-Referer": process.env.SITE_URL ?? "http://localhost:3000",
         "X-Title": "Expense Tracker AI Report",
       },
       body: JSON.stringify({

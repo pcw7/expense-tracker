@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  badRequest,
+  notFound,
+  parseJsonBody,
+  isPrismaNotFound,
+  isPrismaForeignKeyViolation,
+} from "@/lib/api-response";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -14,10 +20,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   });
 
   if (!expense) {
-    return NextResponse.json(
-      { error: "지출 내역을 찾을 수 없습니다." },
-      { status: 404 },
-    );
+    return notFound("지출 내역을 찾을 수 없습니다.");
   }
 
   return NextResponse.json({ expense });
@@ -35,13 +38,9 @@ type ParsedExpenseUpdate = {
  * 각 필드는 선택적이지만, 제공된 경우 유효해야 한다.
  */
 function parseExpenseUpdate(
-  body: unknown,
+  body: Record<string, unknown>,
 ): { data: ParsedExpenseUpdate } | { error: string } {
-  if (typeof body !== "object" || body === null) {
-    return { error: "잘못된 요청 본문입니다." };
-  }
-
-  const { amount, date, memo, categoryId } = body as Record<string, unknown>;
+  const { amount, date, memo, categoryId } = body;
   const data: ParsedExpenseUpdate = {};
 
   if (amount !== undefined) {
@@ -87,31 +86,12 @@ function parseExpenseUpdate(
 export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "잘못된 요청 본문입니다." },
-      { status: 400 },
-    );
-  }
+  const parsedBody = await parseJsonBody(request);
+  if ("error" in parsedBody) return parsedBody.error;
 
-  const parsed = parseExpenseUpdate(body);
+  const parsed = parseExpenseUpdate(parsedBody.data);
   if ("error" in parsed) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 });
-  }
-
-  if (parsed.data.categoryId) {
-    const category = await prisma.category.findUnique({
-      where: { id: parsed.data.categoryId },
-    });
-    if (!category) {
-      return NextResponse.json(
-        { error: "존재하지 않는 카테고리입니다." },
-        { status: 400 },
-      );
-    }
+    return badRequest(parsed.error);
   }
 
   try {
@@ -123,14 +103,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     return NextResponse.json({ expense });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return NextResponse.json(
-        { error: "지출 내역을 찾을 수 없습니다." },
-        { status: 404 },
-      );
+    if (isPrismaNotFound(error)) {
+      return notFound("지출 내역을 찾을 수 없습니다.");
+    }
+    // categoryId가 존재하지 않는 카테고리를 가리키면 FK 위반(P2003)으로 실패한다.
+    if (isPrismaForeignKeyViolation(error)) {
+      return badRequest("존재하지 않는 카테고리입니다.");
     }
 
     throw error;
@@ -145,14 +123,8 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     await prisma.expense.delete({ where: { id } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return NextResponse.json(
-        { error: "지출 내역을 찾을 수 없습니다." },
-        { status: 404 },
-      );
+    if (isPrismaNotFound(error)) {
+      return notFound("지출 내역을 찾을 수 없습니다.");
     }
 
     throw error;

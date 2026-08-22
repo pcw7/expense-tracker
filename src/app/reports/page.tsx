@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { currentMonthString, shiftMonth } from "@/lib/date";
 import { MarkdownView } from "./markdown-view";
 
 type ReportState =
@@ -10,25 +11,13 @@ type ReportState =
   | { status: "loaded"; content: string; updatedAt: string }
   | { status: "error"; message: string };
 
-function formatMonth(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
-function currentMonth(): string {
-  return formatMonth(new Date());
-}
-
 function monthOptions(): string[] {
-  const now = new Date();
-  const opts: string[] = [];
-  for (let i = 0; i < 12; i++) {
-    opts.push(formatMonth(new Date(now.getFullYear(), now.getMonth() - i, 1)));
-  }
-  return opts;
+  const current = currentMonthString();
+  return Array.from({ length: 12 }, (_, i) => shiftMonth(current, -i));
 }
 
 export default function ReportsPage() {
-  const [month, setMonth] = useState<string>(() => currentMonth());
+  const [month, setMonth] = useState<string>(() => currentMonthString());
   const [state, setState] = useState<ReportState>({ status: "loading" });
   const [loadedForMonth, setLoadedForMonth] = useState<string>(month);
   const options = useMemo(() => monthOptions(), []);

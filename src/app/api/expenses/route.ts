@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  badRequest,
+  parseJsonBody,
+  isPrismaMissingRelation,
+} from "@/lib/api-response";
+
+// 한 번에 내려주는 지출 내역 상한. 페이지네이션 UI가 없는 임시 안전장치로,
+// 이 이상 쌓이면 실제 페이지네이션/기간 필터가 필요하다.
+const MAX_EXPENSES = 500;
 
 // GET /api/expenses - 지출 목록 조회 (최신 날짜순)
 export async function GET() {
   const expenses = await prisma.expense.findMany({
     include: { category: true },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    take: MAX_EXPENSES,
   });
 
   return NextResponse.json({ expenses });
@@ -24,13 +33,9 @@ type ParsedExpenseInput = {
  * 실패 시 에러 메시지를 반환하고, 성공 시 파싱된 값을 반환한다.
  */
 function parseExpenseInput(
-  body: unknown,
+  body: Record<string, unknown>,
 ): { data: ParsedExpenseInput } | { error: string } {
-  if (typeof body !== "object" || body === null) {
-    return { error: "잘못된 요청 본문입니다." };
-  }
-
-  const { amount, date, memo, categoryId } = body as Record<string, unknown>;
+  const { amount, date, memo, categoryId } = body;
 
   if (
     typeof amount !== "number" ||
@@ -68,29 +73,12 @@ function parseExpenseInput(
 
 // POST /api/expenses - 새 지출 생성
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "잘못된 요청 본문입니다." },
-      { status: 400 },
-    );
-  }
+  const parsedBody = await parseJsonBody(request);
+  if ("error" in parsedBody) return parsedBody.error;
 
-  const parsed = parseExpenseInput(body);
+  const parsed = parseExpenseInput(parsedBody.data);
   if ("error" in parsed) {
-    return NextResponse.json({ error: parsed.error }, { status: 400 });
-  }
-
-  const category = await prisma.category.findUnique({
-    where: { id: parsed.data.categoryId },
-  });
-  if (!category) {
-    return NextResponse.json(
-      { error: "존재하지 않는 카테고리입니다." },
-      { status: 400 },
-    );
+    return badRequest(parsed.error);
   }
 
   try {
@@ -101,14 +89,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ expense }, { status: 201 });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      (error.code === "P2025" || error.code === "P2003")
-    ) {
-      return NextResponse.json(
-        { error: "존재하지 않는 카테고리입니다." },
-        { status: 400 },
-      );
+    // categoryId가 존재하지 않는 카테고리를 가리키면 Prisma가 FK 위반(P2003)으로
+    // 실패한다 - 별도의 사전 존재 확인 쿼리 없이 이 케이스를 그대로 처리한다.
+    if (isPrismaMissingRelation(error)) {
+      return badRequest("존재하지 않는 카테고리입니다.");
     }
 
     throw error;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { badRequest, notFound, parseJsonBody, isPrismaNotFound } from "@/lib/api-response";
 
 // PATCH /api/budgets/[id] - 예산 금액 수정
 export async function PATCH(
@@ -9,30 +9,13 @@ export async function PATCH(
 ) {
   const { id } = await params;
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json(
-      { error: "잘못된 요청 본문입니다." },
-      { status: 400 },
-    );
-  }
+  const parsedBody = await parseJsonBody(request);
+  if ("error" in parsedBody) return parsedBody.error;
 
-  if (typeof body !== "object" || body === null) {
-    return NextResponse.json(
-      { error: "잘못된 요청 본문입니다." },
-      { status: 400 },
-    );
-  }
-
-  const { amount } = body as Record<string, unknown>;
+  const { amount } = parsedBody.data;
 
   if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
-    return NextResponse.json(
-      { error: "amount는 0 이상의 숫자여야 합니다." },
-      { status: 400 },
-    );
+    return badRequest("amount는 0 이상의 숫자여야 합니다.");
   }
 
   try {
@@ -44,14 +27,8 @@ export async function PATCH(
 
     return NextResponse.json({ budget });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return NextResponse.json(
-        { error: "존재하지 않는 예산입니다." },
-        { status: 404 },
-      );
+    if (isPrismaNotFound(error)) {
+      return notFound("존재하지 않는 예산입니다.");
     }
 
     throw error;
@@ -69,14 +46,8 @@ export async function DELETE(
     await prisma.budget.delete({ where: { id } });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return NextResponse.json(
-        { error: "존재하지 않는 예산입니다." },
-        { status: 404 },
-      );
+    if (isPrismaNotFound(error)) {
+      return notFound("존재하지 않는 예산입니다.");
     }
 
     throw error;

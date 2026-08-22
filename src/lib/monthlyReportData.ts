@@ -2,9 +2,11 @@
 // prompt messages sent to OpenRouter for the monthly AI report.
 
 import { prisma } from "@/lib/prisma";
+import { shiftMonth, monthRange } from "@/lib/date";
+import { formatKRW } from "@/lib/format";
 import type { ChatMessage } from "@/lib/openrouter";
 
-export const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+export { MONTH_REGEX } from "@/lib/date";
 
 export type CategoryBreakdown = {
   name: string;
@@ -27,77 +29,83 @@ export type MonthlySummary = {
   diffRatio: number | null;
 };
 
-function monthRange(month: string): { start: Date; end: Date } {
-  const [yearStr, monthStr] = month.split("-");
-  const year = Number(yearStr);
-  const mon = Number(monthStr); // 1-12
-  const start = new Date(Date.UTC(year, mon - 1, 1));
-  const end = new Date(Date.UTC(year, mon, 1));
-  return { start, end };
-}
+type MonthTotals = {
+  total: number;
+  categoryTotals: Map<string, { amount: number; count: number }>;
+};
 
-export function shiftMonth(month: string, delta: number): string {
-  const [yearStr, monthStr] = month.split("-");
-  const year = Number(yearStr);
-  const mon = Number(monthStr);
-  const d = new Date(Date.UTC(year, mon - 1 + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-
-async function totalForMonth(month: string) {
+/**
+ * DB 레벨 집계(aggregate/groupBy)로 월별 합계와 카테고리별 합계를 구한다.
+ * 전체 row를 category join과 함께 가져와 JS에서 reduce하는 대신, 필요한
+ * 합계만 DB에서 계산해 온다.
+ */
+async function totalForMonth(month: string): Promise<MonthTotals> {
   const { start, end } = monthRange(month);
-  const expenses = await prisma.expense.findMany({
-    where: { date: { gte: start, lt: end } },
-    include: { category: true },
-  });
-  const total = expenses.reduce((acc, e) => acc + e.amount, 0);
-  return { expenses, total };
+  const where = { date: { gte: start, lt: end } };
+
+  const [agg, grouped] = await Promise.all([
+    prisma.expense.aggregate({ where, _sum: { amount: true } }),
+    prisma.expense.groupBy({
+      by: ["categoryId"],
+      where,
+      _sum: { amount: true },
+      _count: true,
+    }),
+  ]);
+
+  const categoryTotals = new Map(
+    grouped.map((g) => [
+      g.categoryId,
+      { amount: g._sum.amount ?? 0, count: g._count },
+    ]),
+  );
+
+  return { total: agg._sum.amount ?? 0, categoryTotals };
 }
 
 export async function buildMonthlySummary(
   month: string,
 ): Promise<MonthlySummary> {
-  const { expenses, total } = await totalForMonth(month);
+  const previousMonth = shiftMonth(month, -1);
 
-  const byCategory = new Map<string, { amount: number; count: number }>();
-  for (const e of expenses) {
-    const key = e.category?.name ?? "미분류";
-    const cur = byCategory.get(key) ?? { amount: 0, count: 0 };
-    cur.amount += e.amount;
-    cur.count += 1;
-    byCategory.set(key, cur);
-  }
+  const [current, previous, allCategories] = await Promise.all([
+    totalForMonth(month),
+    totalForMonth(previousMonth),
+    prisma.category.findMany({ select: { id: true, name: true } }),
+  ]);
 
-  const categories: CategoryBreakdown[] = Array.from(byCategory.entries())
-    .map(([name, v]) => ({
-      name,
+  const categoryNames = new Map(allCategories.map((c) => [c.id, c.name]));
+
+  const categories: CategoryBreakdown[] = Array.from(
+    current.categoryTotals.entries(),
+  )
+    .map(([categoryId, v]) => ({
+      name: categoryNames.get(categoryId) ?? "미분류",
       amount: v.amount,
       count: v.count,
-      ratio: total > 0 ? Math.round((v.amount / total) * 1000) / 10 : 0,
+      ratio: current.total > 0 ? Math.round((v.amount / current.total) * 1000) / 10 : 0,
     }))
     .sort((a, b) => b.amount - a.amount);
 
-  const previousMonth = shiftMonth(month, -1);
-  const { total: previousTotal } = await totalForMonth(previousMonth);
+  const count = [...current.categoryTotals.values()].reduce(
+    (sum, v) => sum + v.count,
+    0,
+  );
 
-  const diff = total - previousTotal;
+  const diff = current.total - previous.total;
   const diffRatio =
-    previousTotal > 0 ? Math.round((diff / previousTotal) * 1000) / 10 : null;
+    previous.total > 0 ? Math.round((diff / previous.total) * 1000) / 10 : null;
 
   return {
     month,
-    total,
-    count: expenses.length,
+    total: current.total,
+    count,
     categories,
     previousMonth,
-    previousTotal,
+    previousTotal: previous.total,
     diff,
     diffRatio,
   };
-}
-
-function krw(amount: number): string {
-  return `${amount.toLocaleString("ko-KR")}원`;
 }
 
 const SYSTEM_PROMPT = `당신은 한국어로 개인 가계부의 월간 소비 리포트를 작성하는 재무 어시스턴트입니다.
@@ -118,7 +126,7 @@ export function buildReportMessages(
       ? summary.categories
           .map(
             (c) =>
-              `- ${c.name}: ${krw(c.amount)} (${c.count}건, 전체의 ${c.ratio}%)`,
+              `- ${c.name}: ${formatKRW(c.amount)} (${c.count}건, 전체의 ${c.ratio}%)`,
           )
           .join("\n")
       : "(이번 달 지출 내역 없음)";
@@ -126,10 +134,10 @@ export function buildReportMessages(
   const diffLine =
     summary.previousTotal === 0
       ? `전월(${summary.previousMonth}) 지출 데이터 없음 (비교 불가)`
-      : `전월(${summary.previousMonth}) 대비 ${summary.diff >= 0 ? "+" : ""}${krw(summary.diff)} (${summary.diffRatio}%)`;
+      : `전월(${summary.previousMonth}) 대비 ${summary.diff >= 0 ? "+" : ""}${formatKRW(summary.diff)} (${summary.diffRatio}%)`;
 
   const userPrompt = `${month} 지출 데이터:
-- 총 지출: ${krw(summary.total)}
+- 총 지출: ${formatKRW(summary.total)}
 - 총 거래 건수: ${summary.count}건
 - 카테고리별 내역:
 ${categoryLines}

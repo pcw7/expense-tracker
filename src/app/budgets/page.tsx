@@ -1,14 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { MONTH_REGEX, currentMonthString } from "@/lib/date";
 import { BudgetManager } from "./budget-manager";
-
-function currentMonth(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-}
-
-const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 type BudgetsPageProps = {
   searchParams: Promise<{ month?: string }>;
@@ -17,7 +9,9 @@ type BudgetsPageProps = {
 export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
   const { month: monthParam } = await searchParams;
   const month =
-    monthParam && MONTH_REGEX.test(monthParam) ? monthParam : currentMonth();
+    monthParam && MONTH_REGEX.test(monthParam)
+      ? monthParam
+      : currentMonthString();
 
   const [categories, budgets] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" } }),

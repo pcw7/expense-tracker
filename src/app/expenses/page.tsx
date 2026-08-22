@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { formatKRW } from "@/lib/format";
+import { readErrorMessage } from "@/lib/client-fetch";
 
 type Category = {
   id: string;
@@ -36,27 +38,36 @@ function emptyExpenseForm(categoryId = ""): ExpenseFormValues {
   return { amount: "", date: todayInputValue(), categoryId, memo: "" };
 }
 
-function formatAmount(amount: number) {
-  return `${amount.toLocaleString("ko-KR")}원`;
-}
-
 function formatDate(isoDate: string) {
   const d = new Date(isoDate);
   if (Number.isNaN(d.getTime())) return isoDate;
+  // 지출 날짜는 date-only 값("YYYY-MM-DD")이 UTC 자정으로 저장된 값이다.
+  // 브라우저 로컬 타임존으로 변환해 표시하면 UTC보다 시간이 느린 타임존에서
+  // 하루 전 날짜로 보일 수 있으므로, 저장된 그대로 UTC 기준으로 표시한다.
   return d.toLocaleDateString("ko-KR", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    timeZone: "UTC",
   });
 }
 
-async function readErrorMessage(res: Response, fallback: string) {
-  try {
-    const body = (await res.json()) as { error?: string };
-    return body.error ?? fallback;
-  } catch {
-    return fallback;
+/**
+ * 지출 입력 폼(신규/수정 공용) 값을 검증한다. 유효하면 null, 아니면 에러
+ * 메시지를 반환한다.
+ */
+function validateExpenseForm(values: ExpenseFormValues): string | null {
+  const amount = Number(values.amount);
+  if (!values.amount || !Number.isInteger(amount) || amount <= 0) {
+    return "금액은 1원 이상의 정수로 입력하세요.";
   }
+  if (!values.date) {
+    return "날짜를 입력하세요.";
+  }
+  if (!values.categoryId) {
+    return "카테고리를 선택하세요.";
+  }
+  return null;
 }
 
 async function fetchExpensesPageData(): Promise<{
@@ -204,19 +215,12 @@ export default function ExpensesPage() {
     e.preventDefault();
     setFormError(null);
 
+    const validationError = validateExpenseForm(form);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
     const amount = Number(form.amount);
-    if (!form.amount || !Number.isInteger(amount) || amount <= 0) {
-      setFormError("금액은 1원 이상의 정수로 입력하세요.");
-      return;
-    }
-    if (!form.date) {
-      setFormError("날짜를 입력하세요.");
-      return;
-    }
-    if (!form.categoryId) {
-      setFormError("카테고리를 선택하세요.");
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -266,19 +270,12 @@ export default function ExpensesPage() {
     e.preventDefault();
     setEditError(null);
 
+    const validationError = validateExpenseForm(editForm);
+    if (validationError) {
+      setEditError(validationError);
+      return;
+    }
     const amount = Number(editForm.amount);
-    if (!editForm.amount || !Number.isInteger(amount) || amount <= 0) {
-      setEditError("금액은 1원 이상의 정수로 입력하세요.");
-      return;
-    }
-    if (!editForm.date) {
-      setEditError("날짜를 입력하세요.");
-      return;
-    }
-    if (!editForm.categoryId) {
-      setEditError("카테고리를 선택하세요.");
-      return;
-    }
 
     setEditSubmitting(true);
     try {
@@ -723,7 +720,7 @@ export default function ExpensesPage() {
                               </span>
                             </div>
                             <span className="text-lg font-semibold">
-                              {formatAmount(expense.amount)}
+                              {formatKRW(expense.amount)}
                             </span>
                             {expense.memo && (
                               <span className="text-sm text-zinc-600 dark:text-zinc-400">
