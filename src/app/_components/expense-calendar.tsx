@@ -1,29 +1,19 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { shiftMonth, monthRange, localDateString } from "@/lib/date";
+import {
+  shiftMonth,
+  monthRange,
+  localDateString,
+  buildMonthWeeks,
+} from "@/lib/date";
 import { formatKRW } from "@/lib/format";
+import { AddExpenseButton } from "./add-expense-modal";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
-}
-
-/** calMonth("YYYY-MM")의 달력 주 단위 그리드를 만든다. 앞뒤 빈 칸은 null. */
-function buildWeeks(year: number, monthIndex0: number): (number | null)[][] {
-  const startWeekday = new Date(Date.UTC(year, monthIndex0, 1)).getUTCDay();
-  const daysInMonth = new Date(Date.UTC(year, monthIndex0 + 1, 0)).getUTCDate();
-
-  const cells: (number | null)[] = [
-    ...Array.from({ length: startWeekday }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  const weeks: (number | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
-  return weeks;
 }
 
 function formatDateLabel(dateStr: string): string {
@@ -54,7 +44,7 @@ export async function ExpenseCalendar({
   dateParam: string | null;
 }) {
   const [year, monthNum] = calMonth.split("-").map(Number);
-  const weeks = buildWeeks(year, monthNum - 1);
+  const weeks = buildMonthWeeks(year, monthNum - 1);
   const todayStr = localDateString();
 
   const selectedDate =
@@ -66,12 +56,16 @@ export async function ExpenseCalendar({
 
   const { start: monthStart, end: monthEnd } = monthRange(calMonth);
 
-  const [monthExpenseDates, dailyExpenses] = await Promise.all([
+  const [monthExpenseDates, dailyExpenses, categories] = await Promise.all([
     prisma.expense.findMany({
       where: { date: { gte: monthStart, lt: monthEnd } },
       select: { date: true },
     }),
     selectedDate ? loadDailyExpenses(selectedDate) : Promise.resolve([]),
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, icon: true },
+    }),
   ]);
   const daysWithExpense = new Set(monthExpenseDates.map((e) => e.date.getUTCDate()));
 
@@ -165,12 +159,18 @@ export async function ExpenseCalendar({
         </tbody>
       </table>
 
-      <Link
-        href="/expenses"
-        className="text-sm font-medium text-sky-600 hover:underline dark:text-indigo-200"
-      >
-        전체 보기
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/expenses"
+          className="text-sm font-medium text-sky-600 hover:underline dark:text-indigo-200"
+        >
+          전체 보기
+        </Link>
+        <AddExpenseButton
+          categories={categories}
+          defaultDate={selectedDate ?? todayStr}
+        />
+      </div>
 
       {selectedDate && (
         <div className="flex flex-col gap-3 border-t border-sky-900/12 pt-4 dark:border-indigo-200/15">

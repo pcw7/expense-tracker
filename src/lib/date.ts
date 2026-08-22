@@ -29,6 +29,28 @@ export function localDateString(date = new Date()): string {
 }
 
 /**
+ * year/monthIndex0(0=1월)이 나타내는 달의 주 단위 달력 그리드를 만든다.
+ * 일요일 시작, 앞뒤 빈 칸은 null (서버 달력과 모달 내 미니 달력이 공유).
+ */
+export function buildMonthWeeks(
+  year: number,
+  monthIndex0: number,
+): (number | null)[][] {
+  const startWeekday = new Date(Date.UTC(year, monthIndex0, 1)).getUTCDay();
+  const daysInMonth = new Date(Date.UTC(year, monthIndex0 + 1, 0)).getUTCDate();
+
+  const cells: (number | null)[] = [
+    ...Array.from({ length: startWeekday }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const weeks: (number | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
+/**
  * month("YYYY-MM")가 나타내는 달의 [start, end) 구간을 반환한다.
  * Expense.date는 date-only 문자열("YYYY-MM-DD")이 UTC 자정으로 저장되므로,
  * 이 구간도 UTC 기준으로 계산해야 저장된 값과 정확히 맞물린다.
