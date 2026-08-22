@@ -1,25 +1,38 @@
-# 가계부 (Expense Tracker)
+# ☁️ 가계부 (Expense Tracker)
 
 지출을 기록하고, 카테고리별·기간별 통계를 확인하고, AI가 만들어주는 월간 소비 리포트를 받아보는 개인용 가계부 웹 애플리케이션입니다.
 
-## 주요 기능
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat&logo=prisma&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-8A5CF5?style=flat)
 
-- **지출 기록** — 금액·날짜·카테고리·메모로 지출을 추가/수정/삭제
-- **홈 대시보드** — 이번 달 총 지출을 도넛 차트로, 카테고리별 비중을 한눈에 확인
-- **달력 보기** — 월별 달력에서 지출이 있는 날짜를 표시하고, 날짜를 클릭하면 그날의 지출 내역과 합계를 확인
-- **지출 추가 모달** — 홈 화면에서 바로 달력으로 날짜를 고르고 지출/카테고리를 추가
-- **대시보드 통계** — 카테고리별 지출 막대 차트, 예산 대비 사용률, 최근 6개월 지출 추이
-- **예산 관리** — 월별 전체 예산과 카테고리별 예산을 설정하고 사용률 확인
-- **AI 월간 리포트** — OpenRouter를 통해 무료 LLM 모델을 호출해 이번 달 소비 인사이트를 한국어 마크다운으로 생성
-- 하늘·구름·해·달을 모티프로 한 라이트/다크 테마
+<p>
+  <img src="docs/screenshots/home-light.png" width="49%" alt="홈 화면 (라이트 모드) — 도넛 차트, AI 요약, 달력" />
+  <img src="docs/screenshots/dashboard-dark.png" width="49%" alt="대시보드 (다크 모드) — 카테고리별 지출, 예산 사용률, 지출 추이" />
+</p>
 
-## 기술 스택
+## ✨ 주요 기능
+
+- 💸 **지출 기록** — 금액·날짜·카테고리·메모로 지출을 추가/수정/삭제
+- 🍩 **홈 대시보드** — 이번 달 총 지출을 도넛 차트로, 카테고리별 비중을 한눈에 확인
+- 📅 **달력 보기** — 월별 달력에서 지출이 있는 날짜를 표시하고, 날짜를 클릭하면 그날의 지출 내역과 합계를 확인
+- ➕ **지출 추가 모달** — 홈 화면에서 바로 달력으로 날짜를 고르고 지출/카테고리를 추가
+- 📊 **대시보드 통계** — 카테고리별 지출 막대 차트, 예산 대비 사용률, 최근 6개월 지출 추이
+- 🎯 **예산 관리** — 월별 전체 예산과 카테고리별 예산을 설정하고 사용률 확인
+- 🤖 **AI 월간 리포트** — OpenRouter를 통해 무료 LLM 모델을 호출해 이번 달 소비 인사이트를 한국어 마크다운으로 생성
+- 🌤️ 하늘·구름·해·달을 모티프로 한 라이트/다크 테마
+
+## 🛠️ 기술 스택
 
 - [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS
 - [Prisma](https://www.prisma.io) + SQLite (`@prisma/adapter-better-sqlite3`)
 - [OpenRouter](https://openrouter.ai) API를 통한 AI 리포트 생성
 
-## 시작하기
+## 🚀 시작하기
 
 ### 1. 설치
 
@@ -52,7 +65,7 @@ npm run dev
 
 [http://localhost:3000](http://localhost:3000)에서 확인할 수 있습니다.
 
-## 프로젝트 구조
+## 📁 프로젝트 구조
 
 ```
 src/
@@ -68,7 +81,7 @@ src/
 └── generated/prisma/            # Prisma 클라이언트 (자동 생성)
 ```
 
-## 스크립트
+## 📜 스크립트
 
 | 명령어 | 설명 |
 |---|---|
