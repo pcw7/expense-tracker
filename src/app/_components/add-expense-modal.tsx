@@ -6,7 +6,12 @@ import { shiftMonth, buildMonthWeeks } from "@/lib/date";
 import { readErrorMessage } from "@/lib/client-fetch";
 import { CATEGORY_COLOR_SWATCHES } from "@/lib/categoryColor";
 
-type Category = { id: string; name: string; icon: string | null };
+type Category = {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+};
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -155,6 +160,9 @@ export function AddExpenseButton({
 
   const [year, monthNum] = calMonth.split("-").map(Number);
   const weeks = buildMonthWeeks(year, monthNum - 1);
+  const usedColors = new Set(
+    categoryList.map((c) => c.color).filter((c): c is string => c !== null),
+  );
 
   return (
     <>
@@ -428,26 +436,43 @@ export function AddExpenseButton({
                     <div className="flex flex-wrap gap-2">
                       {CATEGORY_COLOR_SWATCHES.map((swatch) => {
                         const isSelected = newCategoryColor === swatch;
+                        const isUsed = usedColors.has(swatch);
                         return (
                           <button
                             key={swatch}
                             type="button"
+                            disabled={isUsed}
                             onClick={() =>
                               setNewCategoryColor((prev) =>
                                 prev === swatch ? "" : swatch,
                               )
                             }
-                            aria-label={`색상 ${swatch}`}
+                            aria-label={
+                              isUsed
+                                ? `색상 ${swatch} (이미 사용 중)`
+                                : `색상 ${swatch}`
+                            }
                             aria-pressed={isSelected}
-                            className="h-7 w-7 rounded-full transition-[outline-offset]"
+                            className="relative h-7 w-7 rounded-full transition-[outline-offset] disabled:cursor-not-allowed"
                             style={{
-                              backgroundColor: swatch,
-                              outline: isSelected
-                                ? "2px solid var(--dv-text-primary)"
-                                : "2px solid transparent",
+                              backgroundColor: isUsed ? "var(--dv-track)" : swatch,
+                              outline:
+                                isSelected && !isUsed
+                                  ? "2px solid var(--dv-text-primary)"
+                                  : "2px solid transparent",
                               outlineOffset: 2,
                             }}
-                          />
+                          >
+                            {isUsed && (
+                              <span
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs"
+                                style={{ color: "var(--dv-text-muted)" }}
+                              >
+                                ×
+                              </span>
+                            )}
+                          </button>
                         );
                       })}
                     </div>
