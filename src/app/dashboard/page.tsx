@@ -5,7 +5,6 @@ import { CategoryBreakdownChart } from "./_components/category-breakdown-chart";
 import { EmptyState } from "./_components/empty-state";
 import { TotalSpendTile } from "./_components/total-spend-tile";
 import { TrendChart } from "./_components/trend-chart";
-import "./dataviz.css";
 import { formatMonthLabel } from "./_lib/format";
 
 function resolveMonth(raw: string | string[] | undefined): string {

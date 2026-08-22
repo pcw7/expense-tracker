@@ -1,4 +1,13 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { getMonthlyStats, currentMonthString } from "@/lib/stats";
+import { formatMonthShort } from "@/lib/format";
+import { DonutChart } from "./_components/donut-chart";
+import { AiTeaser } from "./_components/ai-teaser";
+
+// 이 페이지는 요청마다 최신 지출/리포트 데이터를 읽어야 하므로, 빌드 시점
+// 데이터로 고정되는 정적 프리렌더를 명시적으로 끈다.
+export const dynamic = "force-dynamic";
 
 const sections = [
   {
@@ -23,16 +32,23 @@ const sections = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const month = currentMonthString();
+  const [stats, report] = await Promise.all([
+    getMonthlyStats(month),
+    prisma.monthlyReport.findUnique({ where: { month } }),
+  ]);
+
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-16">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight">가계부</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">
-          지출을 기록하고, 카테고리별/기간별 통계를 보고, AI 월간 소비
-          리포트를 받아보세요.
-        </p>
-      </div>
+    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-12">
+      <section className="dv-root flex flex-col gap-6 rounded-2xl border border-sky-900/12 bg-white/55 p-6 backdrop-blur-md dark:border-indigo-200/15 dark:bg-white/5">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {formatMonthShort(month)} 지출내역
+        </h1>
+        <DonutChart items={stats.categoryBreakdown} total={stats.totalAmount} />
+        <AiTeaser reportContent={report?.content ?? null} />
+      </section>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {sections.map((section) => (
           <Link

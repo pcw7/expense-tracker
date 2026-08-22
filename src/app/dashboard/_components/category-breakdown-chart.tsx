@@ -1,17 +1,12 @@
 import type { CategoryBreakdownItem } from "@/lib/stats";
 import { formatKRW } from "../_lib/format";
+import {
+  CATEGORY_SERIES_VARS,
+  CATEGORY_OTHER_COLOR,
+  resolveCategoryColor,
+} from "@/lib/categoryColor";
 
-const SERIES_VARS = [
-  "var(--dv-series-1)",
-  "var(--dv-series-2)",
-  "var(--dv-series-3)",
-  "var(--dv-series-4)",
-  "var(--dv-series-5)",
-  "var(--dv-series-6)",
-  "var(--dv-series-7)",
-];
-const MAX_INDIVIDUAL_SERIES = SERIES_VARS.length;
-const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
+const MAX_INDIVIDUAL_SERIES = CATEGORY_SERIES_VARS.length;
 
 type Row = {
   key: string;
@@ -44,7 +39,7 @@ export function CategoryBreakdownChart({
     icon: item.icon,
     amount: item.amount,
     percentage: item.percentage,
-    color: item.color && HEX_COLOR.test(item.color) ? item.color : SERIES_VARS[i],
+    color: resolveCategoryColor(item.color, i),
   }));
 
   if (otherAmount > 0) {
@@ -54,7 +49,7 @@ export function CategoryBreakdownChart({
       icon: null,
       amount: otherAmount,
       percentage: Math.round(otherPercentage * 10) / 10,
-      color: "var(--dv-series-other)",
+      color: CATEGORY_OTHER_COLOR,
     });
   }
 
