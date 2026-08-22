@@ -16,9 +16,10 @@ function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-function formatDateLabel(dateStr: string): string {
+function formatDateLabel(dateStr: string, isToday: boolean): string {
   const [, m, d] = dateStr.split("-").map(Number);
-  return `${m}/${d}일`;
+  const label = `${m}/${d}`;
+  return isToday ? `오늘(${label})` : label;
 }
 
 async function loadDailyExpenses(dateStr: string) {
@@ -68,6 +69,7 @@ export async function ExpenseCalendar({
     }),
   ]);
   const daysWithExpense = new Set(monthExpenseDates.map((e) => e.date.getUTCDate()));
+  const dailyTotal = dailyExpenses.reduce((sum, e) => sum + e.amount, 0);
 
   const prevMonth = shiftMonth(calMonth, -1);
   const nextMonth = shiftMonth(calMonth, 1);
@@ -174,9 +176,17 @@ export async function ExpenseCalendar({
 
       {selectedDate && (
         <div className="flex flex-col gap-3 border-t border-sky-900/12 pt-4 dark:border-indigo-200/15">
-          <h3 className="font-semibold" style={{ color: "var(--dv-text-primary)" }}>
-            {formatDateLabel(selectedDate)}
-          </h3>
+          <div className="flex items-baseline justify-between">
+            <h3 className="font-semibold" style={{ color: "var(--dv-text-primary)" }}>
+              {formatDateLabel(selectedDate, selectedDate === todayStr)}
+            </h3>
+            <span
+              className="font-semibold tabular-nums"
+              style={{ color: "var(--dv-text-primary)" }}
+            >
+              {formatKRW(dailyTotal)}
+            </span>
+          </div>
           {dailyExpenses.length === 0 ? (
             <p className="text-sm" style={{ color: "var(--dv-text-muted)" }}>
               이 날은 지출이 없어요.
