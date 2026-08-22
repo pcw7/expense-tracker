@@ -56,7 +56,7 @@ model Budget {
   @@map("budgets")
 }
 
-/// AI(OpenRouter 경유 DeepSeek)가 생성한 월간 소비 리포트. 월당 1개.
+/// AI(OpenRouter 경유 무료 모델)가 생성한 월간 소비 리포트. 월당 1개.
 model MonthlyReport {
   id        String   @id @default(cuid())
   month     String   @unique // "YYYY-MM" 형식

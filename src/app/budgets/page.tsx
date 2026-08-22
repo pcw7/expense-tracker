@@ -1,11 +1,40 @@
-export default function BudgetsPage() {
+import { prisma } from "@/lib/prisma";
+import { BudgetManager } from "./budget-manager";
+
+function currentMonth(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+const MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+type BudgetsPageProps = {
+  searchParams: Promise<{ month?: string }>;
+};
+
+export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
+  const { month: monthParam } = await searchParams;
+  const month =
+    monthParam && MONTH_REGEX.test(monthParam) ? monthParam : currentMonth();
+
+  const [categories, budgets] = await Promise.all([
+    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.budget.findMany({
+      where: { month },
+      include: { category: true },
+      orderBy: [{ categoryId: { sort: "asc", nulls: "first" } }],
+    }),
+  ]);
+
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-6 py-16">
       <h1 className="text-2xl font-semibold tracking-tight">예산</h1>
       <p className="text-zinc-600 dark:text-zinc-400">
-        월별 예산을 설정하고 사용 현황을 관리하는 기능이 이곳에 구현될
-        예정입니다.
+        월별 전체 예산과 카테고리별 예산을 설정하고 확인할 수 있습니다.
       </p>
+      <BudgetManager month={month} categories={categories} budgets={budgets} />
     </main>
   );
 }
