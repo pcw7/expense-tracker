@@ -6,13 +6,15 @@ type MeterProps = {
   spent: number;
   amount: number;
   percentage: number;
+  /** true면 라벨/금액 텍스트 줄을 숨기고, 바에 마우스를 올렸을 때 사용 금액을 보여준다. */
+  hideHeader?: boolean;
 };
 
 /**
  * 예산 대비 사용률을 보여주는 단일 게이지(bar meter).
  * 채워진 막대 색상이 심각도를 나타낸다: 80% 미만 정상(accent) → 80~100% 경고 → 초과 위험.
  */
-function Meter({ label, spent, amount, percentage }: MeterProps) {
+function Meter({ label, spent, amount, percentage, hideHeader }: MeterProps) {
   const isOver = !Number.isFinite(percentage) || percentage > 100;
   const filledWidth = Number.isFinite(percentage)
     ? Math.min(Math.max(percentage, 0), 100)
@@ -25,21 +27,24 @@ function Meter({ label, spent, amount, percentage }: MeterProps) {
 
   return (
     <div>
-      <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
-        <span
-          className="min-w-0 truncate font-medium"
-          style={{ color: "var(--dv-text-primary)" }}
-        >
-          {label}
-        </span>
-        <span
-          className="shrink-0 tabular-nums"
-          style={{ color: "var(--dv-text-secondary)" }}
-        >
-          {formatKRW(spent)} / {formatKRW(amount)}
-        </span>
-      </div>
+      {!hideHeader && (
+        <div className="mb-1 flex items-baseline justify-between gap-2 text-sm">
+          <span
+            className="min-w-0 truncate font-medium"
+            style={{ color: "var(--dv-text-primary)" }}
+          >
+            {label}
+          </span>
+          <span
+            className="shrink-0 tabular-nums"
+            style={{ color: "var(--dv-text-secondary)" }}
+          >
+            {formatKRW(spent)} / {formatKRW(amount)}
+          </span>
+        </div>
+      )}
       <div
+        title={hideHeader ? `사용 금액: ${formatKRW(spent)}` : undefined}
         className="h-3 w-full overflow-hidden rounded-[4px]"
         style={{ backgroundColor: "var(--dv-track)" }}
       >
@@ -62,6 +67,7 @@ function Meter({ label, spent, amount, percentage }: MeterProps) {
 export function BudgetMeters({
   overall,
   categories,
+  hideOverallHeader,
 }: {
   overall: {
     amount: number;
@@ -70,6 +76,8 @@ export function BudgetMeters({
     percentage: number;
   } | null;
   categories: BudgetCategoryItem[];
+  /** true면 전체 예산 바의 라벨/금액 줄을 숨기고 호버 시에만 사용 금액을 보여준다. */
+  hideOverallHeader?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -79,6 +87,7 @@ export function BudgetMeters({
           spent={overall.spent}
           amount={overall.amount}
           percentage={overall.percentage}
+          hideHeader={hideOverallHeader}
         />
       )}
       {categories.length > 0 && (

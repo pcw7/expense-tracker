@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getMonthlyStats, currentMonthString } from "@/lib/stats";
 import { MONTH_REGEX } from "@/lib/date";
-import { formatMonthShort } from "@/lib/format";
+import { formatKRW, formatMonthShort } from "@/lib/format";
 import { DonutChart } from "./_components/donut-chart";
 import { AiTeaser } from "./_components/ai-teaser";
 import { ExpenseCalendar } from "./_components/expense-calendar";
@@ -57,16 +57,27 @@ export default async function Home({
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-12">
       <section className="dv-root flex flex-col gap-4 rounded-2xl border border-sky-900/12 bg-white/55 p-6 backdrop-blur-md dark:border-indigo-200/15 dark:bg-white/5">
-        <h2
-          className="text-lg font-semibold tracking-tight"
-          style={{ color: "var(--dv-text-primary)" }}
-        >
-          이번 달 예산 대비 사용률
-        </h2>
+        <div className="flex items-baseline justify-between">
+          <h2
+            className="text-lg font-semibold tracking-tight"
+            style={{ color: "var(--dv-text-primary)" }}
+          >
+            {formatMonthShort(month)} 예산
+          </h2>
+          {stats.budget.overall && (
+            <span
+              className="font-bold tabular-nums"
+              style={{ color: "var(--dv-text-primary)" }}
+            >
+              {formatKRW(stats.budget.overall.amount)}
+            </span>
+          )}
+        </div>
         {hasBudget ? (
           <BudgetMeters
             overall={stats.budget.overall}
             categories={stats.budget.categories}
+            hideOverallHeader
           />
         ) : (
           <EmptyState
