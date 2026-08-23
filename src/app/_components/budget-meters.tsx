@@ -43,15 +43,27 @@ function Meter({ label, spent, amount, percentage, hideHeader }: MeterProps) {
           </span>
         </div>
       )}
-      <div
-        title={hideHeader ? `사용 금액: ${formatKRW(spent)}` : undefined}
-        className="h-3 w-full overflow-hidden rounded-[4px]"
-        style={{ backgroundColor: "var(--dv-track)" }}
-      >
+      <div className={hideHeader ? "group relative" : undefined}>
         <div
-          className="h-3 rounded-[4px]"
-          style={{ width: `${filledWidth}%`, backgroundColor: color }}
-        />
+          className="h-3 w-full overflow-hidden rounded-[4px]"
+          style={{ backgroundColor: "var(--dv-track)" }}
+        >
+          <div
+            className="h-3 rounded-[4px]"
+            style={{ width: `${filledWidth}%`, backgroundColor: color }}
+          />
+        </div>
+        {hideHeader && (
+          <div
+            className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-xs opacity-0 shadow-md transition-opacity group-hover:opacity-100"
+            style={{
+              backgroundColor: "var(--dv-text-primary)",
+              color: "var(--dv-surface)",
+            }}
+          >
+            사용 금액: {formatKRW(spent)}
+          </div>
+        )}
       </div>
       <div
         className="mt-1 text-xs tabular-nums"
