@@ -6,6 +6,8 @@ import { formatMonthShort } from "@/lib/format";
 import { DonutChart } from "./_components/donut-chart";
 import { AiTeaser } from "./_components/ai-teaser";
 import { ExpenseCalendar } from "./_components/expense-calendar";
+import { BudgetMeters } from "./_components/budget-meters";
+import { EmptyState } from "./_components/empty-state";
 
 // 이 페이지는 요청마다 최신 지출/리포트 데이터를 읽어야 하므로, 빌드 시점
 // 데이터로 고정되는 정적 프리렌더를 명시적으로 끈다.
@@ -49,8 +51,33 @@ export default async function Home({
     prisma.monthlyReport.findUnique({ where: { month } }),
   ]);
 
+  const hasBudget =
+    stats.budget.overall !== null || stats.budget.categories.length > 0;
+
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-12">
+      <section className="dv-root flex flex-col gap-4 rounded-2xl border border-sky-900/12 bg-white/55 p-6 backdrop-blur-md dark:border-indigo-200/15 dark:bg-white/5">
+        <h2
+          className="text-lg font-semibold tracking-tight"
+          style={{ color: "var(--dv-text-primary)" }}
+        >
+          이번 달 예산 대비 사용률
+        </h2>
+        {hasBudget ? (
+          <BudgetMeters
+            overall={stats.budget.overall}
+            categories={stats.budget.categories}
+          />
+        ) : (
+          <EmptyState
+            title="설정된 예산이 없습니다"
+            description="예산을 설정하면 이번 달 사용률을 한눈에 볼 수 있습니다."
+            actionHref="/budgets"
+            actionLabel="예산 설정하러 가기 →"
+          />
+        )}
+      </section>
+
       <section className="dv-root flex flex-col gap-6 rounded-2xl border border-sky-900/12 bg-white/55 p-6 backdrop-blur-md dark:border-indigo-200/15 dark:bg-white/5">
         <h1 className="text-2xl font-bold tracking-tight">
           {formatMonthShort(month)} 지출내역

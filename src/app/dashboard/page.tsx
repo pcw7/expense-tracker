@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { MONTH_REGEX, currentMonthString, getMonthlyStats, shiftMonth } from "@/lib/stats";
-import { BudgetMeters } from "./_components/budget-meters";
+import { BudgetMeters } from "../_components/budget-meters";
 import { CategoryBreakdownChart } from "./_components/category-breakdown-chart";
-import { EmptyState } from "./_components/empty-state";
+import { EmptyState } from "../_components/empty-state";
 import { TotalSpendTile } from "./_components/total-spend-tile";
 import { TrendChart } from "./_components/trend-chart";
 import { formatMonthLabel } from "./_lib/format";

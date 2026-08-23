@@ -1,5 +1,5 @@
 import type { BudgetCategoryItem } from "@/lib/stats";
-import { formatKRW } from "../_lib/format";
+import { formatKRW } from "@/lib/format";
 
 type MeterProps = {
   label: string;
