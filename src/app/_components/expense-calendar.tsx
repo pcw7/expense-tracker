@@ -196,15 +196,27 @@ export async function ExpenseCalendar({
               {dailyExpenses.map((expense) => (
                 <li
                   key={expense.id}
-                  className="flex items-center justify-between gap-3 text-sm"
+                  className="flex items-center gap-2 text-sm"
                 >
-                  <span style={{ color: "var(--dv-text-primary)" }}>
-                    {expense.memo
-                      ? `${expense.memo}(${expense.category.name})`
-                      : expense.category.name}
-                  </span>
                   <span
-                    className="shrink-0 font-medium tabular-nums"
+                    className="flex shrink-0 items-center gap-1 font-medium"
+                    style={{ color: "var(--dv-text-primary)" }}
+                  >
+                    {expense.category.icon && (
+                      <span aria-hidden="true">{expense.category.icon}</span>
+                    )}
+                    {expense.category.name}
+                  </span>
+                  {expense.memo && (
+                    <span
+                      className="truncate"
+                      style={{ color: "var(--dv-text-secondary)" }}
+                    >
+                      {expense.memo}
+                    </span>
+                  )}
+                  <span
+                    className="ml-auto shrink-0 font-medium tabular-nums"
                     style={{ color: "var(--dv-text-secondary)" }}
                   >
                     {formatKRW(expense.amount)}
