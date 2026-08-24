@@ -101,12 +101,6 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [newCategoryOpen, setNewCategoryOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [newCategoryColor, setNewCategoryColor] = useState("");
-  const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [categorySubmitting, setCategorySubmitting] = useState(false);
-
   const [form, setForm] = useState<ExpenseFormValues>(() => emptyExpenseForm());
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -133,7 +127,6 @@ export default function ExpensesPage() {
           ...prev,
           categoryId: prev.categoryId || loadedCategories[0]?.id || "",
         }));
-        setNewCategoryOpen(loadedCategories.length === 0);
       })
       .catch((error: unknown) => {
         setLoadError(
@@ -161,49 +154,6 @@ export default function ExpensesPage() {
       }),
     [expenses],
   );
-
-  async function handleCreateCategory(e: React.FormEvent) {
-    e.preventDefault();
-    setCategoryError(null);
-
-    const name = newCategoryName.trim();
-    if (!name) {
-      setCategoryError("카테고리 이름을 입력하세요.");
-      return;
-    }
-
-    setCategorySubmitting(true);
-    try {
-      const res = await fetch("/api/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          color: newCategoryColor.trim() || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        setCategoryError(
-          await readErrorMessage(res, "카테고리 추가에 실패했습니다."),
-        );
-        return;
-      }
-
-      const { category } = (await res.json()) as { category: Category };
-      setCategories((prev) =>
-        [...prev, category].sort((a, b) => a.name.localeCompare(b.name)),
-      );
-      setForm((prev) => ({ ...prev, categoryId: category.id }));
-      setNewCategoryName("");
-      setNewCategoryColor("");
-      setNewCategoryOpen(false);
-    } catch {
-      setCategoryError("카테고리 추가 중 오류가 발생했습니다.");
-    } finally {
-      setCategorySubmitting(false);
-    }
-  }
 
   async function handleCreateExpense(e: React.FormEvent) {
     e.preventDefault();
@@ -365,8 +315,7 @@ export default function ExpensesPage() {
 
             {!hasCategories && (
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                등록된 카테고리가 없습니다. 지출을 추가하려면 먼저 카테고리를
-                추가하세요.
+                등록된 카테고리가 없습니다.
               </p>
             )}
 
@@ -417,38 +366,27 @@ export default function ExpensesPage() {
                   >
                     카테고리
                   </label>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <select
-                      id="expense-category"
-                      required
-                      disabled={!hasCategories}
-                      value={form.categoryId}
-                      onChange={(e) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          categoryId: e.target.value,
-                        }))
-                      }
-                      className="min-w-48 rounded-md border border-sky-900/12 bg-transparent px-3 py-2 disabled:opacity-50 dark:border-indigo-200/15"
-                    >
-                      {!hasCategories && <option value="">카테고리 없음</option>}
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.icon ? `${c.icon} ` : ""}
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => setNewCategoryOpen((v) => !v)}
-                      aria-expanded={newCategoryOpen}
-                      aria-controls="new-category-form"
-                      className="rounded-md border border-sky-900/12 px-3 py-2 text-sm hover:bg-sky-500/5 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
-                    >
-                      {newCategoryOpen ? "카테고리 추가 취소" : "+ 새 카테고리"}
-                    </button>
-                  </div>
+                  <select
+                    id="expense-category"
+                    required
+                    disabled={!hasCategories}
+                    value={form.categoryId}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        categoryId: e.target.value,
+                      }))
+                    }
+                    className="min-w-48 rounded-md border border-sky-900/12 bg-transparent px-3 py-2 disabled:opacity-50 dark:border-indigo-200/15"
+                  >
+                    {!hasCategories && <option value="">카테고리 없음</option>}
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.icon ? `${c.icon} ` : ""}
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1 sm:col-span-2">
@@ -481,60 +419,6 @@ export default function ExpensesPage() {
                 {submitting ? "추가하는 중..." : "지출 추가"}
               </button>
             </form>
-
-            {newCategoryOpen && (
-              <form
-                id="new-category-form"
-                onSubmit={handleCreateCategory}
-                className="flex flex-col gap-3 rounded-md border border-sky-900/12 p-4 dark:border-indigo-200/15"
-              >
-                <h3 className="text-sm font-medium">새 카테고리 추가</h3>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-1">
-                    <label htmlFor="category-name" className="text-sm">
-                      이름
-                    </label>
-                    <input
-                      id="category-name"
-                      type="text"
-                      required
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label htmlFor="category-color" className="text-sm">
-                      색상 (선택, 예: #F97316)
-                    </label>
-                    <input
-                      id="category-color"
-                      type="text"
-                      value={newCategoryColor}
-                      onChange={(e) => setNewCategoryColor(e.target.value)}
-                      className="rounded-md border border-sky-900/12 bg-transparent px-3 py-2 dark:border-indigo-200/15"
-                    />
-                  </div>
-                </div>
-
-                {categoryError && (
-                  <p
-                    role="alert"
-                    className="text-sm text-red-600 dark:text-red-400"
-                  >
-                    {categoryError}
-                  </p>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={categorySubmitting}
-                  className="self-start rounded-md border border-sky-900/12 px-4 py-2 text-sm font-medium hover:bg-sky-500/5 disabled:opacity-50 dark:border-indigo-200/15 dark:hover:bg-indigo-300/10"
-                >
-                  {categorySubmitting ? "추가하는 중..." : "카테고리 추가"}
-                </button>
-              </form>
-            )}
           </section>
 
           <section aria-labelledby="expense-list-heading" className="flex flex-col gap-3">

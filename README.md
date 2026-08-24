@@ -51,10 +51,13 @@ OPENROUTER_API_KEY="sk-or-v1-..."
 
 `OPENROUTER_API_KEY`는 [openrouter.ai](https://openrouter.ai)에서 발급받을 수 있습니다 (AI 리포트 기능에만 필요).
 
-### 3. 데이터베이스 마이그레이션
+### 3. 데이터베이스 마이그레이션 + 카테고리 시드
+
+카테고리는 앱 안에서 직접 추가할 수 없는 고정 프리셋(12개)이라, 마이그레이션 후 반드시 시드를 실행해야 합니다.
 
 ```bash
 npx prisma migrate dev
+npm run db:seed
 ```
 
 ### 4. 개발 서버 실행

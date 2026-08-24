@@ -65,7 +65,7 @@ export async function ExpenseCalendar({
     selectedDate ? loadDailyExpenses(selectedDate) : Promise.resolve([]),
     prisma.category.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, icon: true, color: true },
+      select: { id: true, name: true, icon: true },
     }),
   ]);
   const daysWithExpense = new Set(monthExpenseDates.map((e) => e.date.getUTCDate()));
