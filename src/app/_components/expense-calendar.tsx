@@ -193,17 +193,21 @@ export async function ExpenseCalendar({
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {dailyExpenses.map((expense) => (
+              {dailyExpenses.map((expense) => {
+                const categoryColor = expense.category.color ?? "var(--dv-text-muted)";
+                return (
                 <li
                   key={expense.id}
-                  className="flex items-center gap-3 rounded-xl border border-sky-900/10 bg-white/40 px-3 py-2 dark:border-indigo-200/10 dark:bg-white/5"
+                  className="flex items-center gap-3 rounded-xl border px-3 py-2"
+                  style={{
+                    backgroundColor: `color-mix(in srgb, ${categoryColor} 16%, var(--dv-surface))`,
+                    borderColor: `color-mix(in srgb, ${categoryColor} 35%, transparent)`,
+                  }}
                 >
                   <div className="flex w-16 shrink-0 flex-col items-center gap-1">
                     <span
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-base"
-                      style={{
-                        backgroundColor: `color-mix(in srgb, ${expense.category.color ?? "var(--dv-text-muted)"} 22%, transparent)`,
-                      }}
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-base shadow-sm"
+                      style={{ backgroundColor: categoryColor }}
                     >
                       {expense.category.icon ?? "🏷️"}
                     </span>
@@ -231,7 +235,8 @@ export async function ExpenseCalendar({
                     {formatKRW(expense.amount)}
                   </span>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>
