@@ -9,19 +9,24 @@ import { randomUUID } from "node:crypto";
 const url = process.env.DATABASE_URL || "file:./prisma/dev.db";
 const dbPath = url.replace(/^file:/, "");
 
+// dataviz 스킬(검증된 카테고리 팔레트 방법론)로 골라낸 12색. 인접 배치 시
+// OKLab CVD(색각이상) ΔE와 일반 시야 ΔE 모두 목표치를 통과하도록 색상환에서
+// 11개 유채색을 고르고 순서를 탐색했고(색상별 계산 스크립트로 검증, 눈대중 아님),
+// "기타"는 범주형 색 경쟁에 넣지 않고 기존 --dv-series-other와 동일한
+// 중성 회색으로 고정했다(무엇에도 안 걸리는 "미분류"라는 의미와도 맞음).
 const CATEGORIES = [
-  { name: "식비", icon: "🍚", color: "#f97316" },
-  { name: "주거", icon: "🏠", color: "#2563eb" },
-  { name: "교통", icon: "🚇", color: "#0ea5e9" },
-  { name: "통신·구독", icon: "📱", color: "#7c3aed" },
-  { name: "쇼핑", icon: "🛒", color: "#ec4899" },
-  { name: "패션·미용", icon: "👕", color: "#db2777" },
-  { name: "건강", icon: "🏥", color: "#16a34a" },
-  { name: "여가·취미", icon: "🎮", color: "#eab308" },
-  { name: "모임·경조사", icon: "🤝", color: "#f59e0b" },
-  { name: "금융", icon: "💰", color: "#059669" },
-  { name: "교육", icon: "📚", color: "#4f46e5" },
-  { name: "기타", icon: "🏷️", color: "#78716c" },
+  { name: "식비", icon: "🍚", color: "#ce5342" },
+  { name: "주거", icon: "🏠", color: "#1d8fb8" },
+  { name: "교통", icon: "🚇", color: "#4e7bdf" },
+  { name: "통신·구독", icon: "📱", color: "#8769d5" },
+  { name: "쇼핑", icon: "🛒", color: "#b357ad" },
+  { name: "패션·미용", icon: "👕", color: "#21a592" },
+  { name: "건강", icon: "🏥", color: "#1d9769" },
+  { name: "여가·취미", icon: "🎮", color: "#5b9219" },
+  { name: "모임·경조사", icon: "🤝", color: "#c94f7c" },
+  { name: "금융", icon: "💰", color: "#b26f18" },
+  { name: "교육", icon: "📚", color: "#957f18" },
+  { name: "기타", icon: "🏷️", color: "#898781" },
 ];
 
 const db = new Database(dbPath);
