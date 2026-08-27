@@ -198,21 +198,18 @@ export async function ExpenseCalendar({
                 return (
                 <li
                   key={expense.id}
-                  className="flex items-center gap-3 rounded-xl border px-3 py-2"
+                  className="flex items-center gap-3 rounded-xl border px-3 py-1.5"
                   style={{
                     backgroundColor: `color-mix(in srgb, ${categoryColor} 16%, var(--dv-surface))`,
                     borderColor: `color-mix(in srgb, ${categoryColor} 35%, transparent)`,
                   }}
                 >
-                  <div className="flex w-16 shrink-0 flex-col items-center gap-1">
-                    <span
-                      className="flex h-9 w-9 items-center justify-center rounded-full text-base shadow-sm"
-                      style={{ backgroundColor: categoryColor }}
-                    >
+                  <div className="flex w-14 shrink-0 flex-col items-center gap-0.5">
+                    <span className="text-lg leading-none">
                       {expense.category.icon ?? "🏷️"}
                     </span>
                     <span
-                      className="text-center text-[11px] leading-tight"
+                      className="text-center text-[10px] leading-tight"
                       style={{ color: "var(--dv-text-muted)" }}
                     >
                       {expense.category.name}
