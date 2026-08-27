@@ -198,7 +198,7 @@ export async function ExpenseCalendar({
                 return (
                 <li
                   key={expense.id}
-                  className="flex items-center gap-3 rounded-xl border px-3 py-1.5"
+                  className="flex items-center gap-4 rounded-xl border px-3 py-1.5"
                   style={{
                     backgroundColor: `color-mix(in srgb, ${categoryColor} 16%, var(--dv-surface))`,
                     borderColor: `color-mix(in srgb, ${categoryColor} 35%, transparent)`,
@@ -226,8 +226,8 @@ export async function ExpenseCalendar({
                     <span className="min-w-0 flex-1" />
                   )}
                   <span
-                    className="shrink-0 font-semibold tabular-nums"
-                    style={{ color: "var(--dv-text-primary)" }}
+                    className="shrink-0 text-sm font-medium tabular-nums"
+                    style={{ color: "var(--dv-text-secondary)" }}
                   >
                     {formatKRW(expense.amount)}
                   </span>
