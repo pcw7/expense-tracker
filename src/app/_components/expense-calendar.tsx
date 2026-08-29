@@ -215,16 +215,27 @@ export async function ExpenseCalendar({
                       {expense.category.name}
                     </span>
                   </div>
-                  {expense.memo ? (
-                    <span
-                      className="min-w-0 flex-1 truncate text-sm"
-                      style={{ color: "var(--dv-text-primary)" }}
-                    >
-                      {expense.memo}
-                    </span>
-                  ) : (
-                    <span className="min-w-0 flex-1" />
-                  )}
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                    {expense.memo && (
+                      <span
+                        className="min-w-0 truncate text-sm"
+                        style={{ color: "var(--dv-text-primary)" }}
+                      >
+                        {expense.memo}
+                      </span>
+                    )}
+                    {expense.recurringExpenseId && (
+                      <span
+                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                        style={{
+                          backgroundColor: "var(--dv-track)",
+                          color: "var(--dv-text-muted)",
+                        }}
+                      >
+                        고정
+                      </span>
+                    )}
+                  </span>
                   <span
                     className="shrink-0 text-sm font-medium tabular-nums"
                     style={{ color: "var(--dv-text-secondary)" }}

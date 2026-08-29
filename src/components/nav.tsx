@@ -3,6 +3,7 @@ import Link from "next/link";
 const links = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/expenses", label: "지출 내역" },
+  { href: "/recurring", label: "고정지출" },
   { href: "/budgets", label: "예산" },
   { href: "/reports", label: "AI 리포트" },
 ];

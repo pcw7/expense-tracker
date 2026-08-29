@@ -89,6 +89,7 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
           <TotalSpendTile
             total={stats.totalAmount}
             previous={stats.previousMonthAmount}
+            fixed={stats.fixedAmount}
           />
 
           <section className="flex flex-col gap-4">

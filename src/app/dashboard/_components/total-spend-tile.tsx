@@ -7,9 +7,11 @@ import { formatKRW } from "../_lib/format";
 export function TotalSpendTile({
   total,
   previous,
+  fixed,
 }: {
   total: number;
   previous: number;
+  fixed: number;
 }) {
   const delta =
     previous > 0 ? Math.round(((total - previous) / previous) * 1000) / 10 : null;
@@ -39,6 +41,11 @@ export function TotalSpendTile({
         >
           전월 대비 {delta > 0 ? "+" : ""}
           {delta}% {delta > 0 ? "증가" : delta < 0 ? "감소" : "동일"}
+        </p>
+      )}
+      {fixed > 0 && (
+        <p className="mt-1 text-sm" style={{ color: "var(--dv-text-muted)" }}>
+          고정비 {formatKRW(fixed)} · 변동비 {formatKRW(total - fixed)}
         </p>
       )}
     </div>

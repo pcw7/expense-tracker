@@ -32,6 +32,10 @@ export type MonthlyStats = {
   month: string;
   totalAmount: number;
   previousMonthAmount: number;
+  /** 고정지출(RecurringExpense)에서 자동 생성된 지출의 합계 */
+  fixedAmount: number;
+  /** totalAmount - fixedAmount */
+  variableAmount: number;
   categoryBreakdown: CategoryBreakdownItem[];
   budget: {
     overall: {
@@ -73,6 +77,10 @@ export async function getMonthlyStats(
   ]);
 
   const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const fixedAmount = expenses.reduce(
+    (sum, e) => sum + (e.recurringExpenseId ? e.amount : 0),
+    0,
+  );
 
   const byCategory = new Map<string, CategoryBreakdownItem>();
   for (const expense of expenses) {
@@ -151,6 +159,8 @@ export async function getMonthlyStats(
     month,
     totalAmount,
     previousMonthAmount,
+    fixedAmount,
+    variableAmount: totalAmount - fixedAmount,
     categoryBreakdown,
     budget,
     trend,

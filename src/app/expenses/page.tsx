@@ -19,6 +19,7 @@ type Expense = {
   memo: string | null;
   categoryId: string;
   category: Category;
+  recurringExpenseId: string | null;
 };
 
 type ExpenseFormValues = {
@@ -596,6 +597,11 @@ export default function ExpensesPage() {
                                   : ""}
                                 {expense.category.name}
                               </span>
+                              {expense.recurringExpenseId && (
+                                <span className="rounded-full bg-zinc-200 px-1.5 py-0.5 text-[11px] font-medium text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200">
+                                  고정
+                                </span>
+                              )}
                             </div>
                             <span className="text-lg font-semibold">
                               {formatKRW(expense.amount)}

@@ -19,8 +19,9 @@ model Category {
   icon      String? // UI 표시용 아이콘 (이모지 또는 아이콘 이름)
   createdAt DateTime @default(now())
 
-  expenses Expense[]
-  budgets  Budget[]
+  expenses          Expense[]
+  budgets           Budget[]
+  recurringExpenses RecurringExpense[]
 
   @@map("categories")
 }
@@ -36,9 +37,34 @@ model Expense {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  /// 이 지출을 자동 생성한 고정지출 항목. 고정지출이 삭제돼도 이미 생성된
+  /// 지출 내역 자체는 남아야 하므로 SetNull (연결만 끊는다).
+  recurringExpenseId String?
+  recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+
   @@index([date])
   @@index([categoryId])
+  @@index([recurringExpenseId])
   @@map("expenses")
+}
+
+/// 매달 반복되는 고정지출 항목(월세, 구독료 등). 활성 상태인 항목은 매달
+/// dayOfMonth에 해당 월의 Expense가 자동으로 생성된다.
+model RecurringExpense {
+  id         String   @id @default(cuid())
+  name       String // 지출 메모로 그대로 쓰이는 이름 (예: "월세")
+  amount     Int
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  dayOfMonth Int // 1~31. 해당 월에 없는 날짜(예: 2월 31일)면 그 달의 말일로 보정
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  expenses Expense[]
+
+  @@index([categoryId])
+  @@map("recurring_expenses")
 }
 
 /// 월별 예산. categoryId가 null이면 해당 월의 전체(총) 예산을 의미한다.
