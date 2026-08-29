@@ -33,7 +33,7 @@ function validate(values: FormValues): string | null {
   if (!values.categoryId) return "카테고리를 선택하세요.";
   const day = Number(values.dayOfMonth);
   if (!Number.isInteger(day) || day < 1 || day > 31) {
-    return "매월 며칠은 1~31 사이여야 합니다.";
+    return "결제일은 1~31 사이여야 합니다.";
   }
   return null;
 }
@@ -259,7 +259,7 @@ export function RecurringManager({
 
             <div className="flex flex-col gap-1">
               <label htmlFor="recurring-day" className="text-sm font-medium">
-                매월 며칠
+                결제일
               </label>
               <input
                 id="recurring-day"
@@ -364,7 +364,7 @@ export function RecurringManager({
                           max={31}
                           step={1}
                           required
-                          aria-label="매월 며칠"
+                          aria-label="결제일"
                           value={editForm.dayOfMonth}
                           onChange={(e) =>
                             setEditForm((prev) => ({ ...prev, dayOfMonth: e.target.value }))
