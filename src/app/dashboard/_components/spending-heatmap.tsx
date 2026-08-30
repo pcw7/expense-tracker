@@ -82,6 +82,15 @@ export function SpendingHeatmap({
                     backgroundColor: `color-mix(in srgb, var(--dv-sequential-end) ${percent}%, var(--dv-sequential-start))`,
                   }}
                 />
+                <span
+                  className="pointer-events-none absolute left-[3px] top-[2px] rounded px-[3px] text-[9px] leading-tight tabular-nums"
+                  style={{
+                    backgroundColor: "color-mix(in srgb, var(--dv-surface) 55%, transparent)",
+                    color: "var(--dv-text-secondary)",
+                  }}
+                >
+                  {day}
+                </span>
                 <div
                   className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-1 text-xs opacity-0 shadow-md transition-opacity group-hover:opacity-100"
                   style={{
