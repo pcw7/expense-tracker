@@ -27,6 +27,9 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 const AUTOSAVE_DELAY_MS = 1000;
 
+// 달이 바뀌면 완전히 새 컴포넌트 인스턴스로 마운트되도록 key={month}를 준다.
+// 그러면 안의 상태/에디터는 렌더 중 조건부 리셋 없이 자연스럽게 처음부터 다시
+// 만들어진다.
 export function MonthlyNote({
   month,
   initialContent,
@@ -34,17 +37,18 @@ export function MonthlyNote({
   month: string;
   initialContent: string | null;
 }) {
+  return <MonthlyNoteEditor key={month} month={month} initialContent={initialContent} />;
+}
+
+function MonthlyNoteEditor({
+  month,
+  initialContent,
+}: {
+  month: string;
+  initialContent: string | null;
+}) {
   const [status, setStatus] = useState<SaveStatus>("idle");
-
-  // 대시보드에서 다른 달로 이동하면(month prop이 바뀌면) 상태 표시를 리셋한다.
-  const [renderedForMonth, setRenderedForMonth] = useState(month);
-  if (renderedForMonth !== month) {
-    setRenderedForMonth(month);
-    setStatus("idle");
-  }
-
-  // month가 바뀔 때만 새 에디터 인스턴스를 만든다(deps 배열).
-  const editor = useCreateBlockNote({ initialContent: toInitialBlocks(initialContent) }, [month]);
+  const editor = useCreateBlockNote({ initialContent: toInitialBlocks(initialContent) });
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
