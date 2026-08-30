@@ -30,6 +30,12 @@
   --dv-status-critical: #d03b3b;
 
   --dv-area-fill: rgba(42, 120, 214, 0.1);
+
+  /* 시퀀셜(단일 hue) 램프 - 지출 히트맵처럼 "값이 클수록 진하게"를 나타낼 때.
+     시작값은 카드 배경과 같은 하늘색 톤이라, 0에 가까운 값은 카드 안에서
+     자연스럽게 흐려 보인다. */
+  --dv-sequential-start: #e8f5ff;
+  --dv-sequential-end: #184f95;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,5 +64,8 @@
     --dv-status-critical: #e66767;
 
     --dv-area-fill: rgba(57, 135, 229, 0.14);
+
+    --dv-sequential-start: #161b32;
+    --dv-sequential-end: #5598e7;
   }
 }
