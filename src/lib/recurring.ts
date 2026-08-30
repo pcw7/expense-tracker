@@ -3,6 +3,7 @@
 // 레이아웃에서 호출) "이번 달 몫이 아직 없으면 생성" 하는 지연 생성 방식을 쓴다.
 import { prisma } from "@/lib/prisma";
 import { monthRange } from "@/lib/date";
+import { isPrismaUniqueConflict } from "@/lib/api-response";
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -38,14 +39,25 @@ export async function ensureRecurringExpensesForMonth(
   const toCreate = active.filter((r) => !already.has(r.id));
   if (toCreate.length === 0) return;
 
+  // SQLite용 Prisma 클라이언트는 createMany의 skipDuplicates를 지원하지 않아서
+  // 건 하나씩 생성한다. 동시 요청으로 findMany 이후 다른 요청이 먼저 생성했더라도,
+  // DB의 (recurringExpenseId, date) unique 제약이 막아주므로 그 경우만 조용히 넘어간다.
   const lastDay = daysInMonth(month);
-  await prisma.expense.createMany({
-    data: toCreate.map((r) => ({
-      amount: r.amount,
-      date: new Date(`${month}-${pad2(Math.min(r.dayOfMonth, lastDay))}T00:00:00.000Z`),
-      memo: r.name,
-      categoryId: r.categoryId,
-      recurringExpenseId: r.id,
-    })),
-  });
+  await Promise.all(
+    toCreate.map(async (r) => {
+      try {
+        await prisma.expense.create({
+          data: {
+            amount: r.amount,
+            date: new Date(`${month}-${pad2(Math.min(r.dayOfMonth, lastDay))}T00:00:00.000Z`),
+            memo: r.name,
+            categoryId: r.categoryId,
+            recurringExpenseId: r.id,
+          },
+        });
+      } catch (error) {
+        if (!isPrismaUniqueConflict(error)) throw error;
+      }
+    }),
+  );
 }
