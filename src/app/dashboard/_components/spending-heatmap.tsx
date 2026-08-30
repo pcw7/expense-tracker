@@ -10,14 +10,14 @@ import "@toast-ui/chart/toastui-chart.css";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-// 대시보드 배경은 하늘색 그라디언트라 캔버스에 --dv-surface(불투명 흰/검정)를
-// 그대로 칠하면 그 위에 떠 있는 흰 상자처럼 보인다. 그래서 히트맵을 홈 화면과
-// 같은 반투명 유리 카드(bg-white/55 backdrop-blur) 안에 넣고, 0원 칸은 카드의
-// 흰 배경과 같은 완전 불투명 흰색/검정으로 시작해 카드 안에서만 "티가 안 나게"
-// 만든다 - 카드 밖 하늘색과는 애초에 안 맞닿으므로 어색해 보이지 않는다.
+// 히트맵 셀은 항상 불투명 단색으로만 칠해진다(라이브러리가 셀 색을 RGB로만
+// 보간하고 알파는 지원하지 않아, 카드를 투명하게 둬도 0원 칸만 "안 보이게"
+// 할 수는 없음). 그래서 순백/순검정 대신, 카드의 실제 렌더링 색(반투명 유리
+// 위로 하늘색이 비치는 합성색)을 스크린샷에서 직접 스포이트로 찍어 그 값을
+// 썼다 - 카드 배경과 훨씬 자연스럽게 이어진다.
 const SCALE = {
-  light: { start: "#ffffff", end: "#184f95", label: "#52514e" },
-  dark: { start: "#141414", end: "#5598e7", label: "#c3c2b7" },
+  light: { start: "#e8f5ff", end: "#184f95", label: "#52514e" },
+  dark: { start: "#161b32", end: "#5598e7", label: "#c3c2b7" },
 };
 
 const CHART_HEIGHT = 220;
@@ -60,7 +60,10 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
           usageStatistics: false,
           chart: { height: CHART_HEIGHT },
           theme: {
-            chart: { backgroundColor: start },
+            // chart 배경은 투명하게 둬서 카드의 반투명 유리 느낌이 그대로
+            // 비치게 하고, "흰색"은 실제 0원인 칸(series)에만 칠한다 - 여기를
+            // start색으로 채우면 그리드 전체(여백 포함)가 통짜 흰 박스가 된다.
+            chart: { backgroundColor: "transparent" },
             series: { startColor: start, endColor: end },
             xAxis: { label: { color: label } },
             yAxis: { label: { color: label } },
@@ -92,7 +95,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
         <span className="tabular-nums">{formatKRW(maxAmount)}</span>
         <div
           aria-hidden="true"
-          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-white to-[#184f95] dark:border-white/10 dark:from-[#141414] dark:to-[#5598e7]"
+          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-[#e8f5ff] to-[#184f95] dark:border-white/10 dark:from-[#161b32] dark:to-[#5598e7]"
         />
         <span>0원</span>
       </div>
