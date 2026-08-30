@@ -98,9 +98,8 @@ export function SpendingHeatmap({
                   }}
                 />
                 <span
-                  className="pointer-events-none absolute left-[3px] top-[2px] rounded px-[3px] text-[9px] font-medium leading-tight tabular-nums"
+                  className="pointer-events-none absolute left-[3px] top-[2px] text-[9px] font-medium leading-tight tabular-nums"
                   style={{
-                    backgroundColor: "color-mix(in srgb, var(--dv-surface) 55%, transparent)",
                     color: isRedDay ? "var(--dv-delta-bad)" : "var(--dv-text-secondary)",
                   }}
                 >
