@@ -18,8 +18,11 @@ const SCALE = {
   dark: { start: "#182338", end: "#5598e7", label: "#c3c2b7" },
 };
 
+const CHART_HEIGHT = 220;
+
 export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const maxAmount = Math.max(0, ...weeks.flat().filter((v): v is number => v !== null));
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -34,11 +37,16 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
       : "light";
     const { start, end, label } = SCALE[mode];
 
+    // 1주가 화면 맨 아래에 오도록(달력을 위→아래로 읽는 방향과 반대) 행 순서를
+    // 뒤집는다 - "지출 히트맵이면 아래가 1주차"라는 요청에 맞춘 것.
+    const reversedWeeks = [...weeks].reverse();
+    const weekCount = weeks.length;
+
     import("@toast-ui/chart/heatmap").then(({ default: HeatmapChart }) => {
       if (disposed || !containerRef.current) return;
 
-      const series = weeks.map((week) => week.map((amount) => amount ?? 0));
-      const yCategories = weeks.map((_, i) => `${i + 1}주`);
+      const series = reversedWeeks.map((week) => week.map((amount) => amount ?? 0));
+      const yCategories = reversedWeeks.map((_, i) => `${weekCount - i}주`);
 
       chart = new HeatmapChart({
         el: containerRef.current,
@@ -48,15 +56,16 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
         },
         options: {
           usageStatistics: false,
-          chart: { height: 220 },
+          chart: { height: CHART_HEIGHT },
           theme: {
             chart: { backgroundColor: "transparent" },
             series: { startColor: start, endColor: end },
             xAxis: { label: { color: label } },
             yAxis: { label: { color: label } },
-            legend: { label: { color: label } },
           },
-          legend: { align: "right" },
+          // 기본 스펙트럼 범례는 위쪽이 0, 아래쪽이 최댓값이라 "돈은 아래가
+          // 0부터"라는 감각과 반대라 끄고, 아래에 직접 만든 세로 범례를 쓴다.
+          legend: { visible: false },
           exportMenu: { visible: false },
           tooltip: {
             formatter: (value: number) => formatKRW(value),
@@ -71,5 +80,20 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
     };
   }, [weeks]);
 
-  return <div ref={containerRef} className="w-full" />;
+  return (
+    <div className="flex items-stretch gap-4">
+      <div ref={containerRef} className="min-w-0 flex-1" />
+      <div
+        className="flex shrink-0 flex-col items-center justify-between text-xs"
+        style={{ height: CHART_HEIGHT, color: "var(--dv-text-muted)" }}
+      >
+        <span className="tabular-nums">{formatKRW(maxAmount)}</span>
+        <div
+          aria-hidden="true"
+          className="w-3 flex-1 rounded-full bg-gradient-to-t from-[#cde2fb] to-[#184f95] dark:from-[#182338] dark:to-[#5598e7]"
+        />
+        <span>0원</span>
+      </div>
+    </div>
+  );
 }
