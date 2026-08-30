@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { currentMonthString, shiftMonth } from "@/lib/date";
-import { MarkdownView } from "./markdown-view";
+import { MarkdownView } from "../_components/markdown-view";
 
 type ReportState =
   | { status: "loading" }

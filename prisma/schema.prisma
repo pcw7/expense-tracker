@@ -92,3 +92,15 @@ model MonthlyReport {
 
   @@map("monthly_reports")
 }
+
+/// 사용자가 직접 쓰는 월별 메모(목표, 다짐, 체크리스트 등). AI 리포트와 별개로,
+/// 월당 1개만 존재한다.
+model MonthlyNote {
+  id        String   @id @default(cuid())
+  month     String   @unique // "YYYY-MM" 형식
+  content   String // 사용자가 작성한 마크다운 본문
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("monthly_notes")
+}

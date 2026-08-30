@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import {
   MONTH_REGEX,
   currentMonthString,
@@ -9,6 +10,7 @@ import {
 import { BudgetMeters } from "../_components/budget-meters";
 import { CategoryBreakdownChart } from "./_components/category-breakdown-chart";
 import { EmptyState } from "../_components/empty-state";
+import { MonthlyNote } from "./_components/monthly-note";
 import { SpendingHeatmap } from "./_components/spending-heatmap";
 import { TotalSpendTile } from "./_components/total-spend-tile";
 import { TrendChart } from "./_components/trend-chart";
@@ -23,9 +25,10 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
   const searchParams = await props.searchParams;
   const month = resolveMonth(searchParams.month);
 
-  const [stats, heatmapWeeks] = await Promise.all([
+  const [stats, heatmapWeeks, note] = await Promise.all([
     getMonthlyStats(month),
     getDailyHeatmapWeeks(month),
+    prisma.monthlyNote.findUnique({ where: { month } }),
   ]);
   const isCurrentMonth = month === currentMonthString();
   const prevMonth = shiftMonth(month, -1);
@@ -86,6 +89,8 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
           )}
         </nav>
       </div>
+
+      <MonthlyNote month={month} initialContent={note?.content ?? null} />
 
       {!stats.hasAnyExpenseEver ? (
         <EmptyState

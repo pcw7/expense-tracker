@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 
-// Minimal, dependency-free renderer for the small subset of markdown the AI
-// report prompt is instructed to produce: "##"/"###" headings, "-"/"*"
-// bullet lists, "**bold**" spans, and plain paragraphs. Intentionally not a
-// full markdown parser — just enough to display the report nicely without
-// pulling in a new npm dependency for this one screen.
+// Minimal, dependency-free renderer for the small subset of markdown this
+// app actually produces: "#"/"##"/"###" headings, "-"/"*" bullet lists
+// (including "- [ ]"/"- [x]" checkboxes), "**bold**" spans, and plain
+// paragraphs. Intentionally not a full markdown parser — just enough to
+// display AI reports and user notes without pulling in a new npm dependency.
 
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const parts = text.split(/(\*\*[^*]+\*\*)/g).filter((part) => part.length > 0);
@@ -14,6 +14,28 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     ) : (
       <span key={`${keyPrefix}-${i}`}>{part}</span>
     ),
+  );
+}
+
+const CHECKBOX_RE = /^\[( |x|X)\]\s+(.*)$/;
+
+function renderListItem(item: string, key: string): ReactNode {
+  const checkbox = CHECKBOX_RE.exec(item);
+  if (!checkbox) return renderInline(item, key);
+
+  const checked = checkbox[1].toLowerCase() === "x";
+  return (
+    <label className="flex items-start gap-1.5">
+      <input
+        type="checkbox"
+        checked={checked}
+        readOnly
+        className="mt-1 shrink-0"
+      />
+      <span className={checked ? "opacity-60 line-through" : undefined}>
+        {renderInline(checkbox[2], key)}
+      </span>
+    </label>
   );
 }
 
@@ -27,9 +49,11 @@ export function MarkdownView({ content }: { content: string }) {
     if (listItems.length === 0) return;
     const key = `list-${listKey++}`;
     blocks.push(
-      <ul key={key} className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed">
+      <ul key={key} className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed marker:content-none">
         {listItems.map((item, i) => (
-          <li key={`${key}-li-${i}`}>{renderInline(item, `${key}-li-${i}`)}</li>
+          <li key={`${key}-li-${i}`} className={CHECKBOX_RE.test(item) ? "-ml-5 list-none" : undefined}>
+            {renderListItem(item, `${key}-li-${i}`)}
+          </li>
         ))}
       </ul>,
     );
