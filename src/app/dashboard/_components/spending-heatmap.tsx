@@ -37,20 +37,10 @@ export function SpendingHeatmap({
         className="grid min-w-0 flex-1 gap-[3px]"
         style={{
           gridTemplateColumns: "2.25rem repeat(7, 1fr)",
-          gridTemplateRows: `auto repeat(${rows.length}, 1fr)`,
+          gridTemplateRows: `repeat(${rows.length}, 1fr) auto`,
           height: GRID_HEIGHT,
         }}
       >
-        <div />
-        {WEEKDAY_LABELS.map((label) => (
-          <div
-            key={label}
-            className="pb-1 text-center text-[11px]"
-            style={{ color: "var(--dv-text-muted)" }}
-          >
-            {label}
-          </div>
-        ))}
         {rows.flatMap(({ weekLabel, week, days }, rowIndex) => [
           <div
             key={`label-${rowIndex}`}
@@ -61,7 +51,15 @@ export function SpendingHeatmap({
           </div>,
           ...week.map((amount, dayIndex) => {
             const day = days[dayIndex];
-            if (day === null) return <div key={`empty-${rowIndex}-${dayIndex}`} />;
+            if (day === null) {
+              return (
+                <div
+                  key={`empty-${rowIndex}-${dayIndex}`}
+                  className="rounded-[4px]"
+                  style={{ backgroundColor: "var(--dv-track)" }}
+                />
+              );
+            }
 
             const percent = colorMixPercent(amount ?? 0, maxAmount);
 
@@ -87,6 +85,16 @@ export function SpendingHeatmap({
             );
           }),
         ])}
+        <div />
+        {WEEKDAY_LABELS.map((label) => (
+          <div
+            key={label}
+            className="pt-1 text-center text-[11px]"
+            style={{ color: "var(--dv-text-muted)" }}
+          >
+            {label}
+          </div>
+        ))}
       </div>
 
       <div
