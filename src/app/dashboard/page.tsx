@@ -1,8 +1,15 @@
 import Link from "next/link";
-import { MONTH_REGEX, currentMonthString, getMonthlyStats, shiftMonth } from "@/lib/stats";
+import {
+  MONTH_REGEX,
+  currentMonthString,
+  getMonthlyStats,
+  getDailyHeatmapWeeks,
+  shiftMonth,
+} from "@/lib/stats";
 import { BudgetMeters } from "../_components/budget-meters";
 import { CategoryBreakdownChart } from "./_components/category-breakdown-chart";
 import { EmptyState } from "../_components/empty-state";
+import { SpendingHeatmap } from "./_components/spending-heatmap";
 import { TotalSpendTile } from "./_components/total-spend-tile";
 import { TrendChart } from "./_components/trend-chart";
 import { formatMonthLabel } from "./_lib/format";
@@ -16,7 +23,10 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
   const searchParams = await props.searchParams;
   const month = resolveMonth(searchParams.month);
 
-  const stats = await getMonthlyStats(month);
+  const [stats, heatmapWeeks] = await Promise.all([
+    getMonthlyStats(month),
+    getDailyHeatmapWeeks(month),
+  ]);
   const isCurrentMonth = month === currentMonthString();
   const prevMonth = shiftMonth(month, -1);
   const nextMonth = shiftMonth(month, 1);
@@ -105,6 +115,23 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
               <EmptyState
                 title="이번 달 지출 내역이 없습니다"
                 description="선택한 달에 기록된 지출이 없어 카테고리별 통계를 표시할 수 없습니다."
+              />
+            )}
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <h2
+              className="text-lg font-semibold tracking-tight"
+              style={{ color: "var(--dv-text-primary)" }}
+            >
+              이번 달 지출 히트맵
+            </h2>
+            {hasThisMonthData ? (
+              <SpendingHeatmap weeks={heatmapWeeks} />
+            ) : (
+              <EmptyState
+                title="이번 달 지출 내역이 없습니다"
+                description="지출이 쌓이면 요일별 소비 패턴을 히트맵으로 보여드립니다."
               />
             )}
           </section>

@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { MONTH_REGEX, currentMonthString, shiftMonth, monthRange } from "@/lib/date";
+import {
+  MONTH_REGEX,
+  currentMonthString,
+  shiftMonth,
+  monthRange,
+  buildMonthWeeks,
+} from "@/lib/date";
 
 export { MONTH_REGEX, currentMonthString, shiftMonth };
 
@@ -166,4 +172,32 @@ export async function getMonthlyStats(
     trend,
     hasAnyExpenseEver: anyExpense !== null,
   };
+}
+
+/**
+ * 지정한 달의 날짜별 지출 합계를, 일요일 시작 주 단위 그리드(홈 화면 달력과
+ * 같은 레이아웃)로 반환한다. 달력에 없는 칸은 null, 실제 날짜인데 지출이
+ * 없으면 0.
+ */
+export async function getDailyHeatmapWeeks(
+  month: string,
+): Promise<(number | null)[][]> {
+  const [year, mon] = month.split("-").map(Number);
+  const weeks = buildMonthWeeks(year, mon - 1);
+
+  const { start, end } = monthRange(month);
+  const rows = await prisma.expense.findMany({
+    where: { date: { gte: start, lt: end } },
+    select: { amount: true, date: true },
+  });
+
+  const dailyTotals = new Map<number, number>();
+  for (const row of rows) {
+    const day = row.date.getUTCDate();
+    dailyTotals.set(day, (dailyTotals.get(day) ?? 0) + row.amount);
+  }
+
+  return weeks.map((week) =>
+    week.map((day) => (day === null ? null : (dailyTotals.get(day) ?? 0))),
+  );
 }
