@@ -4,6 +4,7 @@
 // group-hover 툴팁(budget-meters.tsx와 같은 패턴)으로 직접 만들었다. 캔버스가
 // 없으니 서버 컴포넌트로도 충분하다.
 import { buildMonthWeeks } from "@/lib/date";
+import { getKoreanHolidays } from "@/lib/koreanHolidays";
 import { formatKRW } from "../_lib/format";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -12,6 +13,10 @@ const GRID_HEIGHT = 220;
 function colorMixPercent(amount: number, max: number): number {
   if (max <= 0) return 0;
   return Math.min(100, Math.max(0, Math.round((amount / max) * 100)));
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
 }
 
 export function SpendingHeatmap({
@@ -24,6 +29,13 @@ export function SpendingHeatmap({
   const maxAmount = Math.max(0, ...weeks.flat().filter((v): v is number => v !== null));
   const [year, monthNum] = month.split("-").map(Number);
   const dayWeeks = buildMonthWeeks(year, monthNum - 1);
+
+  // 설날 전날 등 연휴가 연도 경계를 넘는 경우를 대비해 앞뒤 연도까지 같이 계산한다.
+  const holidays = new Map([
+    ...getKoreanHolidays(year - 1),
+    ...getKoreanHolidays(year),
+    ...getKoreanHolidays(year + 1),
+  ]);
 
   // 일반 달력처럼 1주가 맨 위, 요일 헤더도 맨 위에 오도록 한다.
   const rows = weeks.map((week, i) => ({
@@ -43,11 +55,11 @@ export function SpendingHeatmap({
         }}
       >
         <div />
-        {WEEKDAY_LABELS.map((label) => (
+        {WEEKDAY_LABELS.map((label, i) => (
           <div
             key={label}
             className="pb-1 text-center text-[11px]"
-            style={{ color: "var(--dv-text-muted)" }}
+            style={{ color: i === 0 ? "var(--dv-delta-bad)" : "var(--dv-text-muted)" }}
           >
             {label}
           </div>
@@ -73,6 +85,9 @@ export function SpendingHeatmap({
             }
 
             const percent = colorMixPercent(amount ?? 0, maxAmount);
+            const isSunday = dayIndex === 0;
+            const isHoliday = holidays.has(`${year}-${pad2(monthNum)}-${pad2(day)}`);
+            const isRedDay = isSunday || isHoliday;
 
             return (
               <div key={`cell-${rowIndex}-${dayIndex}`} className="group relative">
@@ -83,10 +98,10 @@ export function SpendingHeatmap({
                   }}
                 />
                 <span
-                  className="pointer-events-none absolute left-[3px] top-[2px] rounded px-[3px] text-[9px] leading-tight tabular-nums"
+                  className="pointer-events-none absolute left-[3px] top-[2px] rounded px-[3px] text-[9px] font-medium leading-tight tabular-nums"
                   style={{
                     backgroundColor: "color-mix(in srgb, var(--dv-surface) 55%, transparent)",
-                    color: "var(--dv-text-secondary)",
+                    color: isRedDay ? "var(--dv-delta-bad)" : "var(--dv-text-secondary)",
                   }}
                 >
                   {day}
