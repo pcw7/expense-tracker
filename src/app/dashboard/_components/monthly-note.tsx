@@ -46,7 +46,6 @@ export function MonthlyNote({
         initialEditType: "wysiwyg",
         previewStyle: "vertical",
         initialValue: content,
-        placeholder: "이번 달 목표나 다짐을 적어보세요. 예: 배달음식 3번 이하로 줄이기",
         usageStatistics: false,
         toolbarItems: [
           ["heading", "bold", "italic"],
@@ -78,6 +77,8 @@ export function MonthlyNote({
         return;
       }
       setContent(markdown);
+      editorRef.current?.destroy();
+      editorRef.current = null;
       setEditing(false);
     } catch {
       setError("네트워크 오류로 메모를 저장하지 못했습니다.");
@@ -87,6 +88,8 @@ export function MonthlyNote({
   }
 
   function handleCancel() {
+    editorRef.current?.destroy();
+    editorRef.current = null;
     setEditing(false);
     setError(null);
   }
