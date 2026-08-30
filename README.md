@@ -12,7 +12,7 @@
 
 <p>
   <img src="docs/screenshots/home-light.png?v=2" width="49%" alt="홈 화면 (라이트 모드) — 도넛 차트, AI 요약, 달력" />
-  <img src="docs/screenshots/dashboard-dark.png?v=2" width="49%" alt="대시보드 (다크 모드) — 카테고리별 지출, 예산 사용률, 지출 추이" />
+  <img src="docs/screenshots/dashboard-dark.png?v=3" width="49%" alt="대시보드 (다크 모드) — 이번 달 메모, 카테고리별 지출, 지출 히트맵" />
 </p>
 
 ## ✨ 주요 기능
@@ -23,6 +23,8 @@
 - ➕ **지출 추가 모달** — 홈 화면에서 바로 달력으로 날짜를 고르고 지출/카테고리를 추가
 - 📊 **대시보드 통계** — 카테고리별 지출 막대 차트, 예산 대비 사용률, 최근 6개월 지출 추이, 고정비/변동비 분리
 - 🎯 **예산 관리** — 월별 전체 예산과 카테고리별 예산을 설정하고 사용률 확인
+- 🔥 **지출 히트맵** — 이번 달 지출을 요일별 달력 형태로 진하기 표시. 일요일과 한국 공휴일·대체공휴일은 자동 계산해 날짜를 빨간색으로 표시
+- 📝 **이번 달 메모** — 블록 에디터(BlockNote)로 목표·다짐·체크리스트를 자유롭게 기록. 노션처럼 항상 편집 가능한 상태로, 입력을 멈추면 자동 저장
 - 🔁 **고정지출** — 월세·구독료처럼 매달 반복되는 지출을 한 번 등록해두면 매달 지정한 결제일에 지출 내역이 자동으로 기록됨
 - 🏷️ **고정 카테고리 12종** — 식비·주거·교통 등 아이콘+색이 정해진 프리셋 카테고리(앱 안에서 추가 불가). 색상은 색맹 시뮬레이션까지 검증해 서로 헷갈리지 않도록 고른 팔레트
 - 🤖 **AI 월간 리포트** — OpenRouter를 통해 무료 LLM 모델을 호출해 이번 달 소비 인사이트를 한국어 마크다운으로 생성
@@ -33,6 +35,8 @@
 - [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS
 - [Prisma](https://www.prisma.io) + SQLite (`@prisma/adapter-better-sqlite3`)
 - [OpenRouter](https://openrouter.ai) API를 통한 AI 리포트 생성
+- [BlockNote](https://www.blocknotejs.org)를 이용한 블록 기반 메모 에디터
+- `korean-lunar-calendar`로 직접 계산하는 한국 공휴일·대체공휴일 로직
 
 ## 🚀 시작하기
 
@@ -83,7 +87,7 @@ src/
 │   ├── reports/                 # AI 월간 리포트
 │   ├── api/                    # REST API 라우트
 │   └── _components/            # 홈 화면 전용 컴포넌트 (달력, 드래그&드롭, 도넛 차트, 지출 추가 모달)
-├── lib/                        # 공용 유틸(날짜, 포맷, 고정지출 자동 생성, Prisma 클라이언트, OpenRouter 클라이언트 등)
+├── lib/                        # 공용 유틸(날짜, 포맷, 고정지출 자동 생성, 한국 공휴일 계산, Prisma 클라이언트, OpenRouter 클라이언트 등)
 └── generated/prisma/            # Prisma 클라이언트 (자동 생성)
 ```
 
