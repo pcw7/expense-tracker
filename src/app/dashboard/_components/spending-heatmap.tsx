@@ -10,11 +10,14 @@ import "@toast-ui/chart/toastui-chart.css";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-// 0원인 날은 배경(--dv-surface)과 완전히 같은 색으로 시작해 "티가 안 나게"
-// 하고, 지출이 커질수록 진한 파랑(다크는 더 밝은 파랑)으로 이어진다.
+// 대시보드 배경은 하늘색 그라디언트라 캔버스에 --dv-surface(불투명 흰/검정)를
+// 그대로 칠하면 그 위에 떠 있는 흰 상자처럼 보인다. 그래서 히트맵을 홈 화면과
+// 같은 반투명 유리 카드(bg-white/55 backdrop-blur) 안에 넣고, 0원 칸은 카드의
+// 흰 배경과 같은 완전 불투명 흰색/검정으로 시작해 카드 안에서만 "티가 안 나게"
+// 만든다 - 카드 밖 하늘색과는 애초에 안 맞닿으므로 어색해 보이지 않는다.
 const SCALE = {
-  light: { start: "#fcfcfb", end: "#184f95", label: "#52514e" },
-  dark: { start: "#1a1a19", end: "#5598e7", label: "#c3c2b7" },
+  light: { start: "#ffffff", end: "#184f95", label: "#52514e" },
+  dark: { start: "#141414", end: "#5598e7", label: "#c3c2b7" },
 };
 
 const CHART_HEIGHT = 220;
@@ -80,7 +83,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
   }, [weeks]);
 
   return (
-    <div className="flex items-stretch gap-4">
+    <div className="flex items-stretch gap-4 rounded-2xl border border-sky-900/12 bg-white/55 p-4 backdrop-blur-md dark:border-indigo-200/15 dark:bg-white/5">
       <div ref={containerRef} className="min-w-0 flex-1" />
       <div
         className="flex shrink-0 flex-col items-center justify-between text-xs"
@@ -89,7 +92,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
         <span className="tabular-nums">{formatKRW(maxAmount)}</span>
         <div
           aria-hidden="true"
-          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-[#fcfcfb] to-[#184f95] dark:border-white/10 dark:from-[#1a1a19] dark:to-[#5598e7]"
+          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-white to-[#184f95] dark:border-white/10 dark:from-[#141414] dark:to-[#5598e7]"
         />
         <span>0원</span>
       </div>
