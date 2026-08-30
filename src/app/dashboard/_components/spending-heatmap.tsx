@@ -25,11 +25,12 @@ export function SpendingHeatmap({
   const [year, monthNum] = month.split("-").map(Number);
   const dayWeeks = buildMonthWeeks(year, monthNum - 1);
 
-  // 1주가 화면 맨 아래에 오도록(달력을 위→아래로 읽는 방향과 반대) 순서를
-  // 뒤집는다 - "지출 히트맵이면 아래가 1주차"라는 요청에 맞춘 것.
-  const rows = weeks
-    .map((week, i) => ({ weekLabel: `${i + 1}주`, week, days: dayWeeks[i] }))
-    .reverse();
+  // 일반 달력처럼 1주가 맨 위, 요일 헤더도 맨 위에 오도록 한다.
+  const rows = weeks.map((week, i) => ({
+    weekLabel: `${i + 1}주`,
+    week,
+    days: dayWeeks[i],
+  }));
 
   return (
     <div className="flex items-stretch gap-4 rounded-2xl border border-sky-900/12 bg-[var(--dv-sequential-start)] p-4 dark:border-indigo-200/15">
@@ -37,10 +38,20 @@ export function SpendingHeatmap({
         className="grid min-w-0 flex-1 gap-[3px]"
         style={{
           gridTemplateColumns: "2.25rem repeat(7, 1fr)",
-          gridTemplateRows: `repeat(${rows.length}, 1fr) auto`,
+          gridTemplateRows: `auto repeat(${rows.length}, 1fr)`,
           height: GRID_HEIGHT,
         }}
       >
+        <div />
+        {WEEKDAY_LABELS.map((label) => (
+          <div
+            key={label}
+            className="pb-1 text-center text-[11px]"
+            style={{ color: "var(--dv-text-muted)" }}
+          >
+            {label}
+          </div>
+        ))}
         {rows.flatMap(({ weekLabel, week, days }, rowIndex) => [
           <div
             key={`label-${rowIndex}`}
@@ -85,16 +96,6 @@ export function SpendingHeatmap({
             );
           }),
         ])}
-        <div />
-        {WEEKDAY_LABELS.map((label) => (
-          <div
-            key={label}
-            className="pt-1 text-center text-[11px]"
-            style={{ color: "var(--dv-text-muted)" }}
-          >
-            {label}
-          </div>
-        ))}
       </div>
 
       <div
