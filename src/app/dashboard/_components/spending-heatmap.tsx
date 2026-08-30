@@ -10,12 +10,11 @@ import "@toast-ui/chart/toastui-chart.css";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
-// dataviz 스킬의 단일 hue(blue) 시퀀셜 램프에서 뽑은 두 색. 라이트는 문서화된
-// step100/600, 다크는 --dv-series-1 다크 스텝과 어울리는 더 밝은 톤으로 맞췄다
-// (표면색에 가까운 값에서 시작해 값이 커질수록 진해지는 시퀀셜 인코딩).
+// 0원인 날은 배경(--dv-surface)과 완전히 같은 색으로 시작해 "티가 안 나게"
+// 하고, 지출이 커질수록 진한 파랑(다크는 더 밝은 파랑)으로 이어진다.
 const SCALE = {
-  light: { start: "#cde2fb", end: "#184f95", label: "#52514e" },
-  dark: { start: "#182338", end: "#5598e7", label: "#c3c2b7" },
+  light: { start: "#fcfcfb", end: "#184f95", label: "#52514e" },
+  dark: { start: "#1a1a19", end: "#5598e7", label: "#c3c2b7" },
 };
 
 const CHART_HEIGHT = 220;
@@ -58,7 +57,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
           usageStatistics: false,
           chart: { height: CHART_HEIGHT },
           theme: {
-            chart: { backgroundColor: "transparent" },
+            chart: { backgroundColor: start },
             series: { startColor: start, endColor: end },
             xAxis: { label: { color: label } },
             yAxis: { label: { color: label } },
@@ -90,7 +89,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
         <span className="tabular-nums">{formatKRW(maxAmount)}</span>
         <div
           aria-hidden="true"
-          className="w-3 flex-1 rounded-full bg-gradient-to-t from-[#cde2fb] to-[#184f95] dark:from-[#182338] dark:to-[#5598e7]"
+          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-[#fcfcfb] to-[#184f95] dark:border-white/10 dark:from-[#1a1a19] dark:to-[#5598e7]"
         />
         <span>0원</span>
       </div>
