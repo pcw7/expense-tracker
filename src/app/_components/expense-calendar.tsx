@@ -8,6 +8,7 @@ import {
 } from "@/lib/date";
 import { formatKRW } from "@/lib/format";
 import { AddExpenseButton } from "./add-expense-modal";
+import { CalendarDayCell, DraggableExpenseRow } from "./expense-drag-drop";
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -129,30 +130,14 @@ export async function ExpenseCalendar({
 
                 return (
                   <td key={di} className="py-1">
-                    <Link
-                      href={`/?calMonth=${calMonth}&date=${dateStr}`}
-                      className={`relative mx-auto flex h-8 w-8 items-center justify-center rounded-full text-sm transition-colors ${
-                        isSelected
-                          ? "bg-teal-500 font-semibold text-white"
-                          : isToday
-                            ? "border border-teal-500 font-semibold"
-                            : "hover:bg-sky-500/10 dark:hover:bg-indigo-300/10"
-                      }`}
-                      style={
-                        !isSelected
-                          ? { color: "var(--dv-text-primary)" }
-                          : undefined
-                      }
-                    >
-                      {day}
-                      {hasExpense && !isSelected && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute bottom-0.5 h-1 w-1 rounded-full"
-                          style={{ backgroundColor: "var(--dv-series-1)" }}
-                        />
-                      )}
-                    </Link>
+                    <CalendarDayCell
+                      calMonth={calMonth}
+                      dateStr={dateStr}
+                      day={day}
+                      isSelected={isSelected}
+                      isToday={isToday}
+                      hasExpense={hasExpense}
+                    />
                   </td>
                 );
               })}
@@ -193,58 +178,9 @@ export async function ExpenseCalendar({
             </p>
           ) : (
             <ul className="flex flex-col gap-2">
-              {dailyExpenses.map((expense) => {
-                const categoryColor = expense.category.color ?? "var(--dv-text-muted)";
-                return (
-                <li
-                  key={expense.id}
-                  className="flex items-center gap-4 rounded-xl border px-3 py-1.5"
-                  style={{
-                    backgroundColor: `color-mix(in srgb, ${categoryColor} 16%, var(--dv-surface))`,
-                    borderColor: `color-mix(in srgb, ${categoryColor} 35%, transparent)`,
-                  }}
-                >
-                  <div className="flex w-14 shrink-0 flex-col items-center gap-0.5">
-                    <span className="text-lg leading-none">
-                      {expense.category.icon ?? "🏷️"}
-                    </span>
-                    <span
-                      className="text-center text-[10px] leading-tight"
-                      style={{ color: "var(--dv-text-muted)" }}
-                    >
-                      {expense.category.name}
-                    </span>
-                  </div>
-                  <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                    {expense.memo && (
-                      <span
-                        className="min-w-0 truncate text-sm"
-                        style={{ color: "var(--dv-text-primary)" }}
-                      >
-                        {expense.memo}
-                      </span>
-                    )}
-                    {expense.recurringExpenseId && (
-                      <span
-                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                        style={{
-                          backgroundColor: "var(--dv-track)",
-                          color: "var(--dv-text-muted)",
-                        }}
-                      >
-                        고정
-                      </span>
-                    )}
-                  </span>
-                  <span
-                    className="shrink-0 text-sm font-medium tabular-nums"
-                    style={{ color: "var(--dv-text-secondary)" }}
-                  >
-                    {formatKRW(expense.amount)}
-                  </span>
-                </li>
-                );
-              })}
+              {dailyExpenses.map((expense) => (
+                <DraggableExpenseRow key={expense.id} expense={expense} />
+              ))}
             </ul>
           )}
         </div>
