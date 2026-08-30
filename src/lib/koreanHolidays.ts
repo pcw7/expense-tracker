@@ -5,7 +5,8 @@
 // 설날·추석 연휴는 실제로는 "일요일과 겹칠 때만" 대체공휴일이 생기고(토요일은
 // 트리거하지 않음 - 2025/2026년 실제 사례로 확인), 그 외 단일 공휴일(3·1절,
 // 어린이날, 광복절, 개천절, 한글날, 부처님오신날)은 토·일요일 모두 트리거한다.
-// 신정·현충일·성탄절과, 선거일 등으로 그때그때 지정되는 임시공휴일은 대상이 아니다.
+// 성탄절도 2023년 규정 개정으로 부처님오신날과 함께 대체공휴일 대상에 포함됐다.
+// 신정·현충일과, 선거일 등으로 그때그때 지정되는 임시공휴일은 대상이 아니다.
 import KoreanLunarCalendar from "korean-lunar-calendar";
 
 type YMD = [number, number, number];
@@ -19,7 +20,7 @@ const FIXED_HOLIDAYS: { month: number; day: number; name: string; trigger: Subst
   { month: 8, day: 15, name: "광복절", trigger: "weekend" },
   { month: 10, day: 3, name: "개천절", trigger: "weekend" },
   { month: 10, day: 9, name: "한글날", trigger: "weekend" },
-  { month: 12, day: 25, name: "성탄절", trigger: "none" },
+  { month: 12, day: 25, name: "성탄절", trigger: "weekend" },
 ];
 
 function pad2(n: number): string {
