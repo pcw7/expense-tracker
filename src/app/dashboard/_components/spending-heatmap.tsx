@@ -14,11 +14,12 @@ const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 // 보간하고 알파는 지원하지 않음). 카드 배경이 반투명(bg-white/55 + blur)이면
 // 위치마다 실제로 비치는 색이 미묘하게 달라져서, 캔버스에 그 중 한 지점에서
 // 찍은 값을 칠해도 다른 위치에선 여전히 어긋나 보인다. 그래서 카드 자체를
-// --dv-surface와 같은 불투명 단색으로 바꾸고, 캔버스도 정확히 같은 값을 써서
-// "0원 칸 색 == 카드 배경색"이 항상 정확히 성립하도록 한다.
+// 아래 start와 정확히 같은 불투명 단색으로 칠해서(순백/순검정인 --dv-surface
+// 대신, 하늘색 톤이 도는 파스텔 블루) "0원 칸 색 == 카드 배경색"이 항상
+// 정확히 성립하면서도 하늘색 테마와 자연스럽게 어울리게 한다.
 const SCALE = {
-  light: { start: "#fcfcfb", end: "#184f95", label: "#52514e" },
-  dark: { start: "#1a1a19", end: "#5598e7", label: "#c3c2b7" },
+  light: { start: "#e8f5ff", end: "#184f95", label: "#52514e" },
+  dark: { start: "#161b32", end: "#5598e7", label: "#c3c2b7" },
 };
 
 const CHART_HEIGHT = 220;
@@ -87,10 +88,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
   }, [weeks]);
 
   return (
-    <div
-      className="flex items-stretch gap-4 rounded-2xl border border-sky-900/12 p-4 dark:border-indigo-200/15"
-      style={{ backgroundColor: "var(--dv-surface)" }}
-    >
+    <div className="flex items-stretch gap-4 rounded-2xl border border-sky-900/12 bg-[#e8f5ff] p-4 dark:border-indigo-200/15 dark:bg-[#161b32]">
       <div ref={containerRef} className="min-w-0 flex-1" />
       <div
         className="flex shrink-0 flex-col items-center justify-between text-xs"
@@ -99,7 +97,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
         <span className="tabular-nums">{formatKRW(maxAmount)}</span>
         <div
           aria-hidden="true"
-          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-[#fcfcfb] to-[#184f95] dark:border-white/10 dark:from-[#1a1a19] dark:to-[#5598e7]"
+          className="w-3 flex-1 rounded-full border border-black/10 bg-gradient-to-t from-[#e8f5ff] to-[#184f95] dark:border-white/10 dark:from-[#161b32] dark:to-[#5598e7]"
         />
         <span>0원</span>
       </div>
