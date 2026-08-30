@@ -127,7 +127,7 @@ export default async function DashboardPage(props: PageProps<"/dashboard">) {
               이번 달 지출 히트맵
             </h2>
             {hasThisMonthData ? (
-              <SpendingHeatmap weeks={heatmapWeeks} />
+              <SpendingHeatmap month={month} weeks={heatmapWeeks} />
             ) : (
               <EmptyState
                 title="이번 달 지출 내역이 없습니다"

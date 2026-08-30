@@ -5,6 +5,7 @@
 // import 대신 useEffect 안에서 동적 import해서, 클라이언트에서만(SSR 중에는
 // 절대) 로드/생성되도록 한다.
 import { useEffect, useRef } from "react";
+import { buildMonthWeeks } from "@/lib/date";
 import { formatKRW } from "../_lib/format";
 import "@toast-ui/chart/toastui-chart.css";
 
@@ -24,7 +25,17 @@ const SCALE = {
 
 const CHART_HEIGHT = 220;
 
-export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
+// 라이브러리 타입이 UMD 네임스페이스 안에 있어 모듈로 직접 import할 수 없어서,
+// formatter의 두 번째 인자 중 실제로 쓰는 필드(label)만 최소로 타입을 준다.
+type TooltipDataInfo = { label?: string };
+
+export function SpendingHeatmap({
+  month,
+  weeks,
+}: {
+  month: string;
+  weeks: (number | null)[][];
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const maxAmount = Math.max(0, ...weeks.flat().filter((v): v is number => v !== null));
 
@@ -45,6 +56,14 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
     // 뒤집는다 - "지출 히트맵이면 아래가 1주차"라는 요청에 맞춘 것.
     const reversedWeeks = [...weeks].reverse();
     const weekCount = weeks.length;
+
+    // 툴팁에 "8월 30일 목요일"처럼 실제 날짜를 보여주려면 각 칸이 며칠인지
+    // 알아야 하는데, weeks(금액)엔 그 정보가 없다. buildMonthWeeks가 순수
+    // 날짜 계산 함수라 여기서 그대로 다시 불러 같은 모양의 날짜 그리드를
+    // 만들고, weeks와 동일하게 뒤집어서 인덱스가 맞물리게 한다.
+    const [year, monthNum] = month.split("-").map(Number);
+    const dayWeeks = buildMonthWeeks(year, monthNum - 1);
+    const reversedDayWeeks = [...dayWeeks].reverse();
 
     import("@toast-ui/chart/heatmap").then(({ default: HeatmapChart }) => {
       if (disposed || !containerRef.current) return;
@@ -75,7 +94,21 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
           legend: { visible: false },
           exportMenu: { visible: false },
           tooltip: {
-            formatter: (value: number) => formatKRW(value),
+            // 기본 헤더는 "목, 4주"처럼 요일/주차로만 나온다. 라이브러리가
+            // 셀마다 만들어주는 label이 정확히 이 "요일, N주" 형식이라는 걸
+            // 소스에서 확인했으므로, 그걸 파싱해 실제 날짜로 바꿔 보여준다.
+            formatter: (value: number, tooltipDataInfo?: TooltipDataInfo) => {
+              const parsed = /^(.+),\s*(\d+)주$/.exec(tooltipDataInfo?.label ?? "");
+              if (!parsed) return formatKRW(value);
+
+              const [, weekdayLabel, weekNumStr] = parsed;
+              const weekdayIndex = WEEKDAY_LABELS.indexOf(weekdayLabel);
+              const rowIndex = weekCount - Number(weekNumStr);
+              const day = reversedDayWeeks[rowIndex]?.[weekdayIndex];
+              if (day == null || weekdayIndex === -1) return formatKRW(value);
+
+              return `${monthNum}월 ${day}일 ${weekdayLabel}요일 · ${formatKRW(value)}`;
+            },
           },
         },
       });
@@ -85,7 +118,7 @@ export function SpendingHeatmap({ weeks }: { weeks: (number | null)[][] }) {
       disposed = true;
       chart?.destroy();
     };
-  }, [weeks]);
+  }, [weeks, month]);
 
   return (
     <div className="flex items-stretch gap-4 rounded-2xl border border-sky-900/12 bg-[#e8f5ff] p-4 dark:border-indigo-200/15 dark:bg-[#161b32]">
