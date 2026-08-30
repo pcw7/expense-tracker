@@ -26,8 +26,16 @@ const SCALE = {
 const CHART_HEIGHT = 220;
 
 // 라이브러리 타입이 UMD 네임스페이스 안에 있어 모듈로 직접 import할 수 없어서,
-// formatter의 두 번째 인자 중 실제로 쓰는 필드(label)만 최소로 타입을 준다.
+// formatter/template에서 실제로 쓰는 필드만 최소로 타입을 준다.
 type TooltipDataInfo = { label?: string };
+type TooltipModel = { data: { formattedValue?: string }[] };
+type TooltipTheme = {
+  borderColor: string;
+  borderWidth: number;
+  background: string;
+  borderRadius: number;
+  borderStyle: string;
+};
 
 export function SpendingHeatmap({
   month,
@@ -108,6 +116,24 @@ export function SpendingHeatmap({
               if (day == null || weekdayIndex === -1) return formatKRW(value);
 
               return `${monthNum}월 ${day}일 ${weekdayLabel}요일 · ${formatKRW(value)}`;
+            },
+            // 히트맵 기본 템플릿은 "요일, N주" 헤더 줄을 formatter와 무관하게
+            // 항상 같이 그린다. formatter 결과(formattedValue)만 쓰는 템플릿을
+            // 직접 그려서 그 줄을 없앤다.
+            template: (model: TooltipModel, _default: unknown, theme: TooltipTheme) => {
+              const { borderColor, borderWidth, background, borderRadius, borderStyle } = theme;
+              const style = `border:${borderWidth}px ${borderStyle} ${borderColor};border-radius:${borderRadius}px;background:${background};`;
+              const body = model.data
+                .map(
+                  ({ formattedValue }) => `
+                <div class="toastui-chart-tooltip-series-wrapper">
+                  <div class="toastui-chart-tooltip-series">
+                    <span class="toastui-chart-series-value">${formattedValue}</span>
+                  </div>
+                </div>`,
+                )
+                .join("");
+              return `<div class="toastui-chart-tooltip" style="${style}">${body}</div>`;
             },
           },
         },
