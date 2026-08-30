@@ -13,9 +13,11 @@
     "db:seed": "node prisma/seed.mjs"
   },
   "dependencies": {
+    "@blocknote/core": "^0.54.0",
+    "@blocknote/mantine": "^0.54.0",
+    "@blocknote/react": "^0.54.0",
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
-    "@toast-ui/editor": "^3.2.2",
     "korean-lunar-calendar": "^0.4.0",
     "next": "16.3.2",
     "react": "19.2.8",
@@ -35,8 +37,5 @@
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true
-  },
-  "overrides": {
-    "dompurify": "^3.4.14"
   }
 }
