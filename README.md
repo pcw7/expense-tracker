@@ -11,8 +11,8 @@
 ![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-8A5CF5?style=flat)
 
 <p>
-  <img src="docs/screenshots/home-light.png?v=2" width="49%" alt="홈 화면 (라이트 모드) — 도넛 차트, AI 요약, 달력" />
-  <img src="docs/screenshots/dashboard-dark.png?v=3" width="49%" alt="대시보드 (다크 모드) — 이번 달 메모, 카테고리별 지출, 지출 히트맵" />
+  <img src="docs/screenshots/home-light.png?v=3" width="49%" alt="홈 화면 (라이트 모드) — 도넛 차트, AI 요약, 달력, 선택한 날짜의 지출 카드" />
+  <img src="docs/screenshots/dashboard-dark.png?v=4" width="49%" alt="대시보드 (다크 모드) — 이번 달 메모, 카테고리별 지출, 지출 히트맵" />
 </p>
 
 ## ✨ 주요 기능
